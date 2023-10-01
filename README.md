@@ -14,7 +14,7 @@ Some helpful sources:
 Currently I am not providing any back-version support as I was only focused on the newest stuff first. However it is very possible to add it in.
 
 Initially you want to load all of the bytes into memory. I tend to do this to avoid having to deal with locked files. I achieved this by doing this:
-```
+```csharp
     File.ReadAllBytes(filepath);
 ```
 
