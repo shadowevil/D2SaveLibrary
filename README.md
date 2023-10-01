@@ -23,18 +23,97 @@ Currently I am not providing any back-version support as I was only focused on t
 | 4            | Version       | 4     | 32    |  |
 | 8            | FileSize      | 4     | 32    |  |
 | 12           | Checksum      | 4     | 32    |  |
+|              |               |       |       |  |
 
 ## Player Information
 (generic information about the character such as name, level, class, skills etc...)
-| Offset bytes | Key              | bytes | bits  |
-|--------------|------------------|-------|-------|
-| 16           | Active Weapon    | 4     | 32    |  |
-| 36           | Status           | 1     | 8     |  |
-| 37           | Progression      | 1     | 8     |  |
-| 40           | Class            | 1     | 8     |  |
-| 43           | Player level     | 1     | 8     |  |
-| 48           | LastPlayed       | 4     | 32    |  |
-| 56           | AssignedSkills   | 64    | 512   |  |
+| Offset bytes | Key                                               | bytes | bits  |
+|--------------|---------------------------------------------------|-------|-------|
+| 16           | Active Weapon                                     | 4     | 32    |  |
+| 36           | Status                                            | 1     | 8     |  |
+| 37           | Progression                                       | 1     | 8     |  |
+| 40           | Class                                             | 1     | 8     |  |
+| 43           | Player level                                      | 1     | 8     |  |
+| 48           | LastPlayed                                        | 4     | 32    |  |
+| 56           | AssignedSkills                                    | 64    | 512   |  |
+| 120          | LeftMouseSkill                                    | 4     | 32    |  |
+| 124          | RightMouseSkill                                   | 4     | 32    |  |
+| 128          | SwapLeftMouseSkill                                | 4     | 32    |  |
+| 132          | SwapRightMouseSkill                               | 4     | 32    |  |
+| 168          | Difficulty                                        | 3     | 24    |  |
+| 171          | Map ID                                            | 4     | 32    |  |
+| 267          | Player Name                                       | 16    | 128   |  |
+
+
+## Other Information
+(Just basic campaign information about the character)
+| Offset bytes | Key                                               | bytes | bits  |
+|--------------|---------------------------------------------------|-------|-------|
+| 126          | Classic Character Menu Appearance                 | 32    | 256   |  |
+| 219          | Diablo 2 Resurrected Character Menu Appearance    | 48    | 384   |  |
+| 177          | Mercenary Is Dead                                 | 2     | 16    |  |
+| 179          | Mercenary Seed                                    | 4     | 32    |  |
+| 183          | Mercenary Name ID                                 | 2     | 16    |  |
+| 185          | Mercenary Type ID                                 | 2     | 16    |  |
+| 187          | Mercenary Experience                              | 4     | 32    |  |
+| 713          | NPC Introduction Marker                           | 2     | 16    |  |
+| 715          | NPC Introduction Size in bytes                    | 2     | 16    |  |
+| 717          | NPC Introduction Normal (Not finished)            | 48    | 384   |  |
+| 765          |                                                   | 48    | 384   |  |
+
+
+## Quest Information
+(Due to the multi-level bit/byte distrobution, and to avoid making this super long, I have devised a way to use bit/byte addition to pull each difficulties quest, without having to manually find each bit/byte)
+| Offset bytes | Key                                               | bytes | bits  |
+|--------------|---------------------------------------------------|-------|-------|
+| 335          | Quest Marker (Woo!)                               | 4     | 32    |  |
+| 339          | Quest Version                                     | 4     | 32    |  |
+| 343          | Quest Size (298 bytes)                            | 2     | 16    |  |
+| 345          | Quest Normal Offset (start of byte addition)      | 96    | 768   |  |
+| 441          | Quest Nightmare Offset (start of byte addition)   | 96    | 768   |  |
+| 537          | Quest Hell Offset (start of byte addition)        | 96    | 768   |  |
+|              | START of quest byte addition                      |       |       |  |
+| d + 0        | Introduction to Warriv (Act 1)                    | 2     | 16    |  |
+| d + 14       | Traveled To Act 2                                 | 2     | 16    |  |
+| d + 16       | Introduction to Jerhyn                            | 2     | 16    |  |
+| d + 30       | Traveled To Act 3                                 | 2     | 16    |  |
+| d + 32       | Introduction to Hratli                            | 2     | 16    |  |
+| d + 46       | Traveled To Act 4                                 | 2     | 16    |  |
+| d + 48       | Introduction to Tyeral                            | 2     | 16    |  |
+| d + 60       | Traveled To Act 5                                 | 2     | 16    |  |
+| d + 62       | Introduction to Cain (Act 5)                      | 2     | 16    |  |
+| d + 78       | Akara Stat Reset                                  | 1     | 8     |  |
+| d + 79       | Act 5 Completed                                   | 1     | 8     |  |
+|              | START of Act Offsets                              |       |       |  |
+| d + 2        | Act 1 Quest Set                                   | 12    | 96    |  |
+| d + 18       | Act 2 Quest Set                                   | 12    | 96    |  |
+| d + 34       | Act 3 Quest Set                                   | 12    | 96    |  |
+| d + 50       | Act 4 Quest Set                                   | 6     | 48    |  |
+| d + 66       | Act 5 Quest Set                                   | 12    | 96    |  |
+|              | START of Quest Offsets                            |       |       |  |
+| d + a + 0    | Quest 1                                           | 2     | 16    |  |
+| d + a + 2    | Quest 2                                           | 2     | 16    |  |
+| d + a + 4    | Quest 3                                           | 2     | 16    |  |
+| d + a + 6    | Quest 4                                           | 2     | 16    |  |
+| d + a + 8    | Quest 5                                           | 2     | 16    |  |
+| d + a + 10   | Quest 6                                           | 2     | 16    |  |
+
+## Waypoint Information
+()
+| Offset bytes | Key                                               | bytes | bits  |
+|--------------|---------------------------------------------------|-------|-------|
+| 633          | Waypoint Marker (WS)                              | 2     | 16    |  |
+| 635          | Waypoint Version                                  | 4     | 32    |  |
+| 639          | Waypoint Size (80 bytes)                          | 2     | 16    |  |
+| 641          | Waypoint Normal Offset (Marker 0x02 & 0x01)       | 2     | 16    |  |
+| 665          | Waypoint Nightmare Offset (Marker 0x02 & 0x01)    | 2     | 16    |  |
+| 689          | Waypoint Hell Offset (Marker 0x02 & 0x01)         | 2     | 16    |  |
+|              | START of waypoint byte addition                   |       |       |  |
+| d + 2        | Act 1 Waypoint Set                                | 1     | 8     |  |
+| d + 3        | Act 2 Waypoint Set                                | 1     | 8     |  |
+| d + 4        | Act 3 Waypoint Set                                | 1     | 8     |  |
+| d + 5        | Act 4 Waypoint Set                                | 1     | 8     |  |
+| d + 6        | Act 5 Waypoint Set                                | 1     | 8     |  |
 
 ## How-To-Read Bits/Bytes
 Initially you want to load all of the bytes into memory. I tend to do this to avoid having to deal with locked files. I achieved this by doing this:
