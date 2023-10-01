@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Structure\Header_2\**" />
+    <EmbeddedResource Remove="Structure\Header_2\**" />
+    <None Remove="Structure\Header_2\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="BinaryHandler\ByteArrayConverter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="BinaryHandler\BitwiseBinaryReader.cs.bak" />
+    <None Remove="BinaryHandler\BitwiseBinaryReader.cs.newestbak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="tmpModel\" />
+  </ItemGroup>
+
+</Project>
