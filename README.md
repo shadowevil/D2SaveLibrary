@@ -60,7 +60,6 @@ Currently I am not providing any back-version support as I was only focused on t
 | 713          | NPC Introduction Marker                           | 2     | 16    |  |
 | 715          | NPC Introduction Size in bytes                    | 2     | 16    |  |
 | 717          | NPC Introduction Normal (Not finished)            | 48    | 384   |  |
-| 765          |                                                   | 48    | 384   |  |
 |              |                                                   |       |       |  |
 
 
