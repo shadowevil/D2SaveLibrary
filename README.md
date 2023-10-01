@@ -11,10 +11,11 @@ Some helpful sources:
 [My Main inspiration to do this]
  - https://github.com/dschu012/D2SLib
 
-Currently I am not providing any back-version support as I was only focused on the newest stuff first. However it is very possible to add it in.
+Currently I am not providing any back-version support as I am only focused on the newest stuff first. However it is very possible to add it in.
 
 ## File Structure
-
+(The total easily findable data is 765 bytes of data, a lot of it has empty area's for padding for some reason, but this is the closest I've gotten to a proper documentation on finding that data)  
+  
 ## File Header Definitions
 (typically a check to see if this is the correct file or not also some checks for modification outside the original intent)
 | Offset bytes | Key           | bytes | bits  |
@@ -64,7 +65,11 @@ Currently I am not providing any back-version support as I was only focused on t
 
 
 ## Quest Information
-(Due to the multi-level bit/byte distrobution, and to avoid making this super long, I have devised a way to use bit/byte addition to pull each difficulties quest, without having to manually find each bit/byte)
+(Due to the multi-level bit/byte distrobution, and to avoid making this super long, I have devised a way to use bit/byte addition to pull each difficulties quest, without having to manually find each bit/byte)  
+-(d = difficulty)  
+-(a = act)  
+formula to find a quest :  
+-(d + a + x)
 | Offset bytes | Key                                               | bytes | bits  |
 |--------------|---------------------------------------------------|-------|-------|
 | 335          | Quest Marker (Woo!)                               | 4     | 32    |  |
@@ -101,7 +106,11 @@ Currently I am not providing any back-version support as I was only focused on t
 |              |                                                   |       |       |  |
 
 ## Waypoint Information
-(Due to the multi-level bit/byte distrobution, and to avoid making this super long, I have devised a way to use bit/byte addition to pull each difficulties waypoints without having to manually type out each byte)
+(Due to the multi-level bit/byte distrobution, and to avoid making this super long, I have devised a way to use bit/byte addition to pull each difficulties waypoints without having to manually type out each byte)  
+-(d = difficulty)  
+-(a = Act)
+Formula to find a waypoint:
+-(d + a + x)
 | Offset bytes | Key                                               | bytes | bits  |
 |--------------|---------------------------------------------------|-------|-------|
 | 633          | Waypoint Marker (WS)                              | 2     | 16    |  |
@@ -127,17 +136,26 @@ Currently I am not providing any back-version support as I was only focused on t
 | 765          | Attribute Marker (gf)                             | 2     | 16    |  |
 |              |                                                   |       |       |  |
 
-(a = attribute offset)
-(n = number of attributes found)
-(x = attribute value which is of veriable bit length)
+a = attribute offset  
+n = number of attributes found  
+x = attribute value which is of veriable bit length  
+
 | Offset bits     | Key                                               | bits  |
 |-----------------|---------------------------------------------------|-------|
 | a + (n * 9)     | Attribute ID                                      | 9     |  |
 | a + (n * 9 + x) | Attribute Value                                   | x     |  |
-|                 |                                                   |       |  |
-The bit length of the attribute can be found within the files of Diablo 2 Resurrected which can be viewed using [CascViewer](http://www.zezula.net/en/casc/main.html) specifically (data\global\excel)
+|                 |                                                   |       |  |  
+
+The bit length of the attribute can be found within the **files of Diablo 2 Resurrected** which can be viewed using [CascViewer](http://www.zezula.net/en/casc/main.html)  
+Specifically (**data\global\excel**) for Attributes you can find the Save Bits column in the **itemstatcost.txt**
+  
+  
+  
 
 
+
+
+  
 ## How-To-Read Bits/Bytes
 Initially you want to load all of the bytes into memory. I tend to do this to avoid having to deal with locked files. I achieved this by doing this:
 ```csharp
