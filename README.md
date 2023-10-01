@@ -148,11 +148,32 @@ x = attribute value which is of veriable bit length
 
 The bit length of the attribute can be found within the **files of Diablo 2 Resurrected** which can be viewed using [CascViewer](http://www.zezula.net/en/casc/main.html)  
 Specifically (**data\global\excel**) for Attributes you can find the Save Bits column in the **itemstatcost.txt**
-  
-  
-  
+    
+## How to read/write checksumInformation
+(At first calculating the checksum was a bit complicated, but I think I figured out a simple way to allow others to understand and use it)  
+When calculating the checksum we first want pass all the bytes we read at the beginning, typically into a function.  
+Then we want to remove the old checksum as we don't want to calculate it in our bytes. Those can be found at bytes 12-16, we can just set those to 0x00.  
 
-
+Formula:  
+```csharp
+        public static byte[] ComputeChecksum(byte[] data)
+        {
+            // Remove the old checksum from the new checksum calculation
+            for (int i = 12; i < 16; i++) data[i] = 0x00;
+            int checksum = 0;
+            for (int i = 0; i < data.Length; i++)
+            {
+                /* first the current checksum is multiplied by 2
+                 * second we check if checksum is less than 0, if it is we place a 1, if it's not place a 0
+                 * Third data[i] takes the byte value from the index at i
+                 * Finally we add everything together */
+                checksum = data[i] + (checksum * 2) + (checksum < 0 ? 1 : 0);
+            }
+            byte[] checksumbytes = new byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(checksumbytes, checksum);
+            return checksumbytes;
+        }
+```
 
 
   
