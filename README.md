@@ -118,6 +118,26 @@ Currently I am not providing any back-version support as I was only focused on t
 | d + 6        | Act 5 Waypoint Set                                | 1     | 8     |  |
 |              |                                                   |       |       |  |
 
+
+
+## Player Attribute Information
+(The attribute field is a variable lengthed bit field describing specific stats such as Strength, Vitality, Energy, Dexterity etc...)
+| Offset bytes | Key                                               | bytes | bits  |
+|--------------|---------------------------------------------------|-------|-------|
+| 765          | Attribute Marker (gf)                             | 2     | 16    |  |
+|              |                                                   |       |       |  |
+
+(a = attribute offset)
+(n = number of attributes found)
+(x = attribute value which is of veriable bit length)
+| Offset bits     | Key                                               | bits  |
+|-----------------|---------------------------------------------------|-------|
+| a + (n * 9)     | Attribute ID                                      | 9     |  |
+| a + (n * 9 + x) | Attribute Value                                   | x     |  |
+|                 |                                                   |       |  |
+The bit length of the attribute can be found within the files of Diablo 2 Resurrected which can be viewed using [CascViewer](http://www.zezula.net/en/casc/main.html) specifically (data\global\excel)
+
+
 ## How-To-Read Bits/Bytes
 Initially you want to load all of the bytes into memory. I tend to do this to avoid having to deal with locked files. I achieved this by doing this:
 ```csharp
