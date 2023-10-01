@@ -101,7 +101,7 @@ Currently I am not providing any back-version support as I was only focused on t
 |              |                                                   |       |       |  |
 
 ## Waypoint Information
-()
+(Due to the multi-level bit/byte distrobution, and to avoid making this super long, I have devised a way to use bit/byte addition to pull each difficulties waypoints without having to manually type out each byte)
 | Offset bytes | Key                                               | bytes | bits  |
 |--------------|---------------------------------------------------|-------|-------|
 | 633          | Waypoint Marker (WS)                              | 2     | 16    |  |
