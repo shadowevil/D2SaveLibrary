@@ -7,6 +7,7 @@ I will outline how I broke down the D2S (Diablo 2 Save File Structure)
 Some helpful sources:
  - https://github.com/WalterCouto/D2CE
  - https://github.com/dschu012/d2s-editor
+
 [My Main inspiration to do this]
  - https://github.com/dschu012/D2SLib
 
