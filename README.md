@@ -43,6 +43,7 @@ Currently I am not providing any back-version support as I was only focused on t
 | 168          | Difficulty                                        | 3     | 24    |  |
 | 171          | Map ID                                            | 4     | 32    |  |
 | 267          | Player Name                                       | 16    | 128   |  |
+|              |                                                   |       |       |  |
 
 
 ## Other Information
@@ -60,6 +61,7 @@ Currently I am not providing any back-version support as I was only focused on t
 | 715          | NPC Introduction Size in bytes                    | 2     | 16    |  |
 | 717          | NPC Introduction Normal (Not finished)            | 48    | 384   |  |
 | 765          |                                                   | 48    | 384   |  |
+|              |                                                   |       |       |  |
 
 
 ## Quest Information
@@ -97,6 +99,7 @@ Currently I am not providing any back-version support as I was only focused on t
 | d + a + 6    | Quest 4                                           | 2     | 16    |  |
 | d + a + 8    | Quest 5                                           | 2     | 16    |  |
 | d + a + 10   | Quest 6                                           | 2     | 16    |  |
+|              |                                                   |       |       |  |
 
 ## Waypoint Information
 ()
@@ -114,6 +117,7 @@ Currently I am not providing any back-version support as I was only focused on t
 | d + 4        | Act 3 Waypoint Set                                | 1     | 8     |  |
 | d + 5        | Act 4 Waypoint Set                                | 1     | 8     |  |
 | d + 6        | Act 5 Waypoint Set                                | 1     | 8     |  |
+|              |                                                   |       |       |  |
 
 ## How-To-Read Bits/Bytes
 Initially you want to load all of the bytes into memory. I tend to do this to avoid having to deal with locked files. I achieved this by doing this:
