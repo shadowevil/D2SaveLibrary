@@ -13,6 +13,30 @@ Some helpful sources:
 
 Currently I am not providing any back-version support as I was only focused on the newest stuff first. However it is very possible to add it in.
 
+## File Structure
+
+## File Header Definitions
+(typically a check to see if this is the correct file or not also some checks for modification outside the original intent)
+| Offset bytes | Key           | bytes | bits  |
+|--------------|---------------|-------|-------|
+| 0            | Signature     | 4     | 32    |  |
+| 4            | Version       | 4     | 32    |  |
+| 8            | FileSize      | 4     | 32    |  |
+| 12           | Checksum      | 4     | 32    |  |
+
+## Player Information
+(generic information about the character such as name, level, class, skills etc...)
+| Offset bytes | Key              | bytes | bits  |
+|--------------|------------------|-------|-------|
+| 16           | Active Weapon    | 4     | 32    |  |
+| 36           | Status           | 1     | 8     |  |
+| 37           | Progression      | 1     | 8     |  |
+| 40           | Class            | 1     | 8     |  |
+| 43           | Player level     | 1     | 8     |  |
+| 48           | LastPlayed       | 4     | 32    |  |
+| 56           | AssignedSkills   | 64    | 512   |  |
+
+## How-To-Read Bits/Bytes
 Initially you want to load all of the bytes into memory. I tend to do this to avoid having to deal with locked files. I achieved this by doing this:
 ```csharp
     File.ReadAllBytes(filepath);
@@ -230,28 +254,7 @@ However if you want to format things nicely, you could also convert that short i
     //  AA55
 ```
 
-Which is the first 2 bytes of the signature of a D2S file. Now we can get into structure and bringing things to life:
-
-## File Header Definitions
-(typically a check to see if this is the correct file or not also some checks for modification outside the original intent)
-| Offset bytes | Key           | bytes | bits  |
-|--------------|---------------|-------|-------|
-| 0 | Signature | 4 | 32 |  |
-| 4 | Version | 4 | 32 |  |
-| 8 | FileSize | 4 | 32 |  |
-| 12 | Checksum | 4 | 32 |  |
-
-## Player Information
-(generic information about the character such as name, level, class, skills etc...)
-| Offset bytes | Key           | bytes | bits  |
-|--------------|---------------|-------|-------|
-| 16 | Active Weapon | 4 | 32 |  |
-| 36 | Status | 1 | 8 |  |
-| 37 | Progression | 1 | 8 |  |
-| 40 | Class | 1 | 8 |  |
-| 43 | Player level | 1 | 8 |  |
-| 48 | LastPlayed | 4 | 32 |  |
-| 56 | AssignedSkills | 64 | 512 |  |
+Which is the first 2 bytes of the signature of a D2S file...
 
 
 TO BE CONTINUED
