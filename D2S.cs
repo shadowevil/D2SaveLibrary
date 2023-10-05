@@ -46,8 +46,8 @@ namespace D2SLib2
             dbContext = new D2slibDataContext();
 
             BitwiseBinaryReader reader = new BitwiseBinaryReader(OpenFilePath);
-
-            Logger.LogPath = Directory.GetCurrentDirectory() + "\\D2SLog.txt";
+            string fileName = Path.GetFileNameWithoutExtension(OpenFilePath);
+            Logger.LogPath = Directory.GetCurrentDirectory() + $"\\Logs\\{fileName}.d2slog";
             Logger.WriteHeader("#--------------------------------------------------------------------------------------------------------------------#");
             Logger.WriteHeader("#-                                                                                                                  -#");
             Logger.WriteHeader("#-                                      D2S Log File for debugging                                                  -#");

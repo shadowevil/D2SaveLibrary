@@ -3,6 +3,7 @@ using D2SLib2.Model;
 using D2SLib2.Structure.Player.Item.MagicalAffixes;
 using System.Diagnostics;
 using System.Drawing;
+using System.Text.Json.Serialization;
 
 namespace D2SLib2.Structure.Player.Item
 {
@@ -139,19 +140,19 @@ namespace D2SLib2.Structure.Player.Item
         }
 
         private Bit[] BasicItemFlags = new Bit[32];
-        public bool Identified {    get { return BasicItemFlags[4]; }  set { BasicItemFlags[4]  = (Bit)(value ? 1 : 0); } }
-        public bool Socketed {      get { return BasicItemFlags[11]; } set { BasicItemFlags[11] = (Bit)(value ? 1 : 0); } }
-        public bool Ear {           get { return BasicItemFlags[16]; } set { BasicItemFlags[16] = (Bit)(value ? 1 : 0); } }
-        public bool SimpleItem {    get { return BasicItemFlags[21]; } set { BasicItemFlags[21] = (Bit)(value ? 1 : 0); } }
-        public bool Ethereal {      get { return BasicItemFlags[22]; } set { BasicItemFlags[22] = (Bit)(value ? 1 : 0); } }
-        public bool Personalized {  get { return BasicItemFlags[24]; } set { BasicItemFlags[24] = (Bit)(value ? 1 : 0); } }
-        public bool Runeword {      get { return BasicItemFlags[26]; } set { BasicItemFlags[26] = (Bit)(value ? 1 : 0); } }
+        public bool Identified { get { return BasicItemFlags[4]; } set { BasicItemFlags[4] = (Bit)(value ? 1 : 0); } }
+        public bool Socketed { get { return BasicItemFlags[11]; } set { BasicItemFlags[11] = (Bit)(value ? 1 : 0); } }
+        public bool Ear { get { return BasicItemFlags[16]; } set { BasicItemFlags[16] = (Bit)(value ? 1 : 0); } }
+        public bool SimpleItem { get { return BasicItemFlags[21]; } set { BasicItemFlags[21] = (Bit)(value ? 1 : 0); } }
+        public bool Ethereal { get { return BasicItemFlags[22]; } set { BasicItemFlags[22] = (Bit)(value ? 1 : 0); } }
+        public bool Personalized { get { return BasicItemFlags[24]; } set { BasicItemFlags[24] = (Bit)(value ? 1 : 0); } }
+        public bool Runeword { get { return BasicItemFlags[26]; } set { BasicItemFlags[26] = (Bit)(value ? 1 : 0); } }
         public bool Stackable { get; set; } = false;
 
         public UInt16 QuestDifficulty { get; set; } = 0;
 
         public byte EarFileIndex { get; set; } = 0;
-        public byte EarLevel {  get; set; } = 0;
+        public byte EarLevel { get; set; } = 0;
         public ItemVersion itemVersion { get; set; } = ItemVersion.v140;
 
         public ItemParent Parent { get; set; } = ItemParent.NONE;
@@ -197,12 +198,13 @@ namespace D2SLib2.Structure.Player.Item
         public UInt16 UniqueFileIndex { get; set; } = 0;
 
         public bool RealmDataExists { get; set; } = false;
-        public Bit[] RealmData { get; set; } = new Bit[96];
+        public Bit[]? RealmData { get; set; } = null;
 
         public byte SocketedItemCount { get; set; } = 0;
         public List<ItemStructure> SocketedItems { get; set; } = new List<ItemStructure>();
 
-        public ItemsTemplate? itemTemplate { get; set; } = null;
+        [JsonIgnore]
+        private ItemsTemplate? itemTemplate { get; set; } = null;
 
         private void ReadBasicItemFlags(BitwiseBinaryReader mainReader)
         {
