@@ -102,6 +102,7 @@ namespace D2SLib2
 
         public void OpenLog()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(LogPath) ?? throw new Exception("Unable to create directory"));
             fs = new StreamWriter(LogPath, false);
         }
 
