@@ -7,8 +7,10 @@ using D2SLib2.Structure.Quests;
 using D2SLib2.Structure.Waypoints;
 using D2SLib2.Structure.Player.Item;
 using Newtonsoft.Json;
+using System.Formats.Asn1;
 
-// How to scaffold your database you dipshit: Scaffold-DbContext "DataSource=.\\D2SLibData.db" Microsoft.EntityFrameworkCore.Sqlite -outputdir tmpModel
+// How to scaffold your database you dipshit:
+//              Scaffold-DbContext "DataSource=C:\\Users\\ShadowEvil\\source\\repos\\D2SLib2\\D2STesting\\D2SLibData.db" Microsoft.EntityFrameworkCore.Sqlite -outputdir tmpModel
 
 namespace D2SLib2
 {
@@ -44,19 +46,53 @@ namespace D2SLib2
             dbContext = new D2slibDataContext();
 
             BitwiseBinaryReader reader = new BitwiseBinaryReader(OpenFilePath);
-            Inventory.FindInventoryOffsetInBytes(reader);
 
+            Logger.LogPath = Directory.GetCurrentDirectory() + "\\D2SLog.txt";
+            Logger.WriteHeader("#--------------------------------------------------------------------------------------------------------------------#");
+            Logger.WriteHeader("#-                                                                                                                  -#");
+            Logger.WriteHeader("#-                                      D2S Log File for debugging                                                  -#");
+            Logger.WriteHeader("#-                                               v0.5.0.1                                                           -#");
+            Logger.WriteHeader("#-                                                                                                                  -#");
+            Logger.WriteHeader("#--------------------------------------------------------------------------------------------------------------------#");
+
+            Logger.WriteBeginSection(reader, "[Looking for Inventory]");
+            Inventory.FindInventoryOffsetInBytes(reader);
+            Logger.WriteEndSection(reader, "[End of Inventory Search]");
+            Logger.WriteBeginSection(reader, "[Looking for Skills]");
+            SkillsClass.FindSkillOffsetInBytes(reader);
+            Logger.WriteEndSection(reader, "[End of Skills Search]");
+
+            Logger.WriteBeginSection(reader, "[Begin Reading Header]");
             fileHeader = Header.Read(reader);
+            Logger.WriteEndSection(reader, "[End Reading Header]");
+
+            Logger.WriteBeginSection(reader, "[Begin Player Information]");
             playerInformation = PlayerInformation.Read(reader);
+            Logger.WriteEndSection(reader, "[End Player Information]");
+
             menuAppearance = new MenuAppearance();
+
+
             menuAppearance.Read(reader);
+
+
             menuAppearance.ReadD2R(reader);
+
+
             mercenary = Mercenary.Read(reader);
+
+
             questBook = QuestBook.Read(reader);
+
+
             waypointBook = WaypointBook.Read(reader);
+
+
             NPC = NPC.Read(reader);
 
-            ConvertD2SToJson(this);
+
+
+            Logger.Close();
         }
 
         public static void ConvertD2SToJson(D2S d2sInstance)

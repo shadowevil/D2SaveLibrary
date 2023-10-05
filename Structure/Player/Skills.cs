@@ -11,16 +11,14 @@ namespace D2SLib2.Structure.Player
 {
     public class SkillsClass
     {
+        public static int skillOffsetBits = -1;
         public HashSet<SkillClass> SkillList = new HashSet<SkillClass>();
 
         public SkillsClass() { }
 
         public static SkillsClass Read(BitwiseBinaryReader mainReader, Player.PlayerClass playerClass)
         {
-            FindSkillOffsetInBytes(mainReader);
-            if (mainReader.ReadBits(SkillsOffsets.OFFSET_START_SEARCH.BitLength).ToStr() != SkillsOffsets.OFFSET_START_SEARCH.Signature)
-                throw new OffsetException("Unable to find Skill offset with search, corrupt save?");
-
+            mainReader.SetBitPosition(skillOffsetBits);
             SkillsClass skills = new SkillsClass();
             skills.SkillList = new HashSet<SkillClass>();
 
@@ -35,6 +33,7 @@ namespace D2SLib2.Structure.Player
             for(int i=0;i<30;i++)
             {
                 skills.SkillList.Add(new SkillClass() { Id = skillOffsetStart + i, Value = mainReader.ReadBits(SkillsOffsets.OFFSET_SKILL.BitLength).ToByte() });
+                Logger.WriteSection(mainReader, SkillsOffsets.OFFSET_SKILL.BitLength, $"Skill Id: {skillOffsetStart + i} | Value: {skills.SkillList.Last().Value}");
             }
 
             return skills;
@@ -43,7 +42,14 @@ namespace D2SLib2.Structure.Player
         public static void FindSkillOffsetInBytes(BitwiseBinaryReader mainReader)
         {
             mainReader.SetBytePosition(SkillsOffsets.OFFSET_START_SEARCH.Offset);
-            while (mainReader.PeekBits(16).ToStr() != SkillsOffsets.OFFSET_START_SEARCH.Signature) mainReader.ReadByte();
+            while (mainReader.PeekBits(16).ToStr() != SkillsOffsets.OFFSET_START_SEARCH.Signature) mainReader.SkipBytes(1);
+
+            if (mainReader.PeekBits(SkillsOffsets.OFFSET_START_SEARCH.BitLength).ToStr() != SkillsOffsets.OFFSET_START_SEARCH.Signature)
+                throw new OffsetException("Unable to find Skill offset with search, corrupt save?");
+            skillOffsetBits = mainReader.bitPosition;
+
+            Logger.WriteSection(mainReader, 0, $"Skill Offset found: {skillOffsetBits / 8} | {skillOffsetBits}");
+            mainReader.SetBitPosition(0);
         }
     }
 

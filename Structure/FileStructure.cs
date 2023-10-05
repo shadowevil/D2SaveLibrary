@@ -146,12 +146,13 @@ namespace D2SLib2.Structure
         // This section of bits/bytes must be read in succession as each item is not searchable
         public static readonly ItemOffsetStruct OFFSET_ITEM_COUNT = new ItemOffsetStruct                (-1,    16);
         public static readonly ItemOffsetStruct OFFSET_BASIC_ITEM_FLAGS = new ItemOffsetStruct          (-1,    32);
+        public static readonly ItemOffsetStruct OFFSET_ITEM_VERSION = new ItemOffsetStruct              (-1,    3);
         public static readonly ItemOffsetStruct OFFSET_PARENT_LOCATION = new ItemOffsetStruct           (-1,    3);
         public static readonly ItemOffsetStruct OFFSET_EQUIPPED_LOCATION = new ItemOffsetStruct         (-1,    4);
         public static readonly ItemOffsetStruct OFFSET_INV_X_POSITION = new ItemOffsetStruct            (-1,    4);
         public static readonly ItemOffsetStruct OFFSET_INV_Y_POSITION = new ItemOffsetStruct            (-1,    4);
         public static readonly ItemOffsetStruct OFFSET_STORED_LOCATION = new ItemOffsetStruct           (-1,    3);
-        public static readonly ItemOffsetStruct OFFSET_CODE = new ItemOffsetStruct                      (-1,    28);
+        public static readonly ItemOffsetStruct OFFSET_CODE = new ItemOffsetStruct                      (-1,    32);
         public static readonly ItemOffsetStruct OFFSET_SIMPLE_SOCKETED_COUNT = new ItemOffsetStruct     (-1,    1);
         public static readonly ItemOffsetStruct OFFSET_SOCKETED_COUNT = new ItemOffsetStruct            (-1,    3);
         public static readonly ItemOffsetStruct OFFSET_ID = new ItemOffsetStruct                        (-1,    32);
@@ -181,8 +182,8 @@ namespace D2SLib2.Structure
         public static readonly ItemOffsetStruct OFFSET_UNIQUE_FILE_INDEX = new ItemOffsetStruct         (-1,    12);
         public static readonly ItemOffsetStruct OFFSET_RUNEWORD_ID = new ItemOffsetStruct               (-1,    12);
         public static readonly ItemOffsetStruct OFFSET_RUNEWORD_PROPERTY = new ItemOffsetStruct         (-1,    4);
-        public static readonly ItemOffsetStruct OFFSET_PERSONALIZED_NAME_SECTION = new ItemOffsetStruct (-1,    105);
-        public static readonly ItemOffsetStruct OFFSET_PERSONALIZED_CHAR = new ItemOffsetStruct         (-1,    7);
+        public static readonly ItemOffsetStruct OFFSET_PERSONALIZED_NAME_SECTION = new ItemOffsetStruct (-1,    128);
+        public static readonly ItemOffsetStruct OFFSET_PERSONALIZED_CHAR = new ItemOffsetStruct         (-1,    8);
         public static readonly ItemOffsetStruct OFFSET_TOWN_PORTAL_BOOK = new ItemOffsetStruct          (-1,    5, "tbk");
         public static readonly ItemOffsetStruct OFFSET_IDENTIFY_BOOK = new ItemOffsetStruct             (-1,    5, "ibk");
         public static readonly ItemOffsetStruct OFFSET_REALM_DATA_BOOL = new ItemOffsetStruct           (-1,    1);

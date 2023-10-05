@@ -12,11 +12,9 @@ namespace D2SLib2.Structure.Player
     public class PlayerInformation
     {
         public UInt32 ActiveWeapon = UInt32.MaxValue;
-
-        private Bit[] statusFlags = new Bit[PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.BitLength];
         public StatusClass? statusClass = null;
 
-        private Bit[] progressionFlags = new Bit[PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength];
+        private Bit[]? progressionFlags = new Bit[PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength];
         public ProgressionClass? Progression = null;
 
         public PlayerClass playerClass = PlayerClass.AMAZON;
@@ -29,10 +27,13 @@ namespace D2SLib2.Structure.Player
         public UInt32 SwitchLeftMouseSkill = UInt32.MaxValue;
         public UInt32 SwitchRightMouseSkill = UInt32.MaxValue;
 
-        private Bit[,] DifficultyFlags = new Bit[3, 8];
-        public DifficultyClass Normal => new DifficultyClass(DifficultyFlags.GetRow(0).ToArray());
-        public DifficultyClass Nightmare => new DifficultyClass(DifficultyFlags.GetRow(1).ToArray());
-        public DifficultyClass Hell => new DifficultyClass(DifficultyFlags.GetRow(2).ToArray());
+        //private Bit[,] DifficultyFlags = new Bit[3, 8];
+        //public DifficultyClass Normal => new DifficultyClass(DifficultyFlags.GetRow(0).ToArray());
+        //public DifficultyClass Nightmare => new DifficultyClass(DifficultyFlags.GetRow(1).ToArray());
+        //public DifficultyClass Hell => new DifficultyClass(DifficultyFlags.GetRow(2).ToArray());
+        public DifficultyClass? Normal { get; set; } = null;
+        public DifficultyClass? Nightmare { get; set; } = null;
+        public DifficultyClass? Hell { get; set; } = null;
 
         public UInt32 MapSeed = UInt32.MaxValue;
 
@@ -48,62 +49,62 @@ namespace D2SLib2.Structure.Player
         {
             PlayerInformation playerInfo = new PlayerInformation();
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON.Offset);
-            playerInfo.ActiveWeapon = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON.BitLength).ToUInt32();
+            playerInfo.ActiveWeapon = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON.BitLength, $"Active Weapon: {playerInfo.ActiveWeapon}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.Offset);
-            playerInfo.statusFlags = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.BitLength);
-            playerInfo.statusClass = new StatusClass(playerInfo.statusFlags);
+            playerInfo.statusClass = new StatusClass(mainReader.Read<Bit[]>(PlayerInformationOffsets.OFFSET_CHARACTER_STATUS));
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.BitLength, $"Status Class: {playerInfo.statusClass.Flags!.ToStringRepresentation()}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_PROGRESSION.Offset);
-            playerInfo.progressionFlags = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength);
+            playerInfo.progressionFlags = mainReader.Read<Bit[]>(PlayerInformationOffsets.OFFSET_PROGRESSION);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength, $"Progression Flags: {playerInfo.progressionFlags!.ToStringRepresentation()}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_PLAYERCLASS.Offset);
-            playerInfo.playerClass = (PlayerClass)mainReader.ReadBits(PlayerInformationOffsets.OFFSET_PLAYERCLASS.BitLength).ToByte();
+            playerInfo.playerClass = (PlayerClass)mainReader.Read<byte>(PlayerInformationOffsets.OFFSET_PLAYERCLASS);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PLAYERCLASS.BitLength, $"Player Class: {playerInfo.playerClass}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_PLAYERLEVEL.Offset);
-            playerInfo.playerLevel = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_PLAYERLEVEL.BitLength).ToByte();
+            playerInfo.playerLevel = mainReader.Read<byte>(PlayerInformationOffsets.OFFSET_PLAYERLEVEL);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PLAYERLEVEL.BitLength, $"Player Level: {playerInfo.playerLevel}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP.Offset);
-            var timestamp = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP.BitLength).ToUInt32();
+            var timestamp = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP);
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             playerInfo.CreatedTimeStamp = epoch.AddSeconds(timestamp).ToLocalTime();
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP.BitLength, $"Last played timestamp: {playerInfo.CreatedTimeStamp}");
 
             mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.Offset);
             for(int i=0;i<16;i++)
             {
                 playerInfo.AssignedSkills[i] = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16).ToUInt32();
                 if (playerInfo.AssignedSkills[i] == UInt16.MaxValue) playerInfo.AssignedSkills[i] = 0;
+                Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16, $"Assigned Skill: {playerInfo.AssignedSkills[i]}");
             }
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_LEFTMOUSESKILL.Offset);
-            playerInfo.LeftMouseSkill = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_LEFTMOUSESKILL.BitLength).ToUInt32();
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_RIGHTMOUSESKILL.Offset);
-            playerInfo.RightMouseSkill = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_RIGHTMOUSESKILL.BitLength).ToUInt32();
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_SWITCHLEFTMOUSESKILL.Offset);
-            playerInfo.SwitchLeftMouseSkill = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_SWITCHLEFTMOUSESKILL.BitLength).ToUInt32();
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_SWITCHRIGHTMOUSESKILL.Offset);
-            playerInfo.SwitchRightMouseSkill = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_SWITCHRIGHTMOUSESKILL.BitLength).ToUInt32();
+            playerInfo.LeftMouseSkill = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_LEFTMOUSESKILL);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_LEFTMOUSESKILL.BitLength, $"Left Mouse Skill: {playerInfo.LeftMouseSkill}");
+
+            playerInfo.RightMouseSkill = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_RIGHTMOUSESKILL);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_RIGHTMOUSESKILL.BitLength, $"Right Mouse Skill: {playerInfo.RightMouseSkill}");
+
+            playerInfo.SwitchLeftMouseSkill = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_SWITCHLEFTMOUSESKILL);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_SWITCHLEFTMOUSESKILL.BitLength, $"Switch Left Mouse Skill: {playerInfo.SwitchLeftMouseSkill}");
+
+            playerInfo.SwitchRightMouseSkill = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_SWITCHRIGHTMOUSESKILL);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_SWITCHRIGHTMOUSESKILL.BitLength, $"Switch Right Mouse Skill: {playerInfo.SwitchRightMouseSkill}");
+
 
             mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_DIFFICULTY.Offset);
-            Bit[,] difficulties = new Bit[3, 8];
-            int dif = 0;
-            foreach(byte b in mainReader.ReadBytes(PlayerInformationOffsets.OFFSET_DIFFICULTY.ByteLength))
-            {
-                Bit[] bits = Bit.ConvertByteArrayToBitArray(new byte[] { b });
-                for(int col=0;col<difficulties.GetLength(1);col++)
-                {
-                    difficulties[dif, col] = bits[col];
-                }
-                dif++;
-            }
-            playerInfo.DifficultyFlags = difficulties;
+            playerInfo.Normal = DifficultyClass.Read(mainReader);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_DIFFICULTY.BitLength / 3, $"Normal Active Difficulty: {playerInfo.Normal.flags!.ToStringRepresentation()}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_MAPID.Offset);
-            playerInfo.MapSeed = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_MAPID.BitLength).ToUInt32();
+            playerInfo.Nightmare = DifficultyClass.Read(mainReader);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_DIFFICULTY.BitLength / 3, $"Nightmare Active Difficulty: {playerInfo.Nightmare.flags!.ToStringRepresentation()}");
 
-            mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_PLAYER_NAME.Offset);
-            playerInfo.PlayerName = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_PLAYER_NAME.BitLength).ToStr().TrimEnd('\0');
+            playerInfo.Hell = DifficultyClass.Read(mainReader);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_DIFFICULTY.BitLength / 3, $"Hell Active Difficulty: {playerInfo.Hell.flags!.ToStringRepresentation()}");
+
+            playerInfo.MapSeed = mainReader.Read<UInt32>(PlayerInformationOffsets.OFFSET_MAPID);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_MAPID.BitLength / 3, $"Map Seed: {playerInfo.MapSeed}");
+
+            playerInfo.PlayerName = mainReader.Read<string>(PlayerInformationOffsets.OFFSET_PLAYER_NAME)!.TrimEnd('\0');
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PLAYER_NAME.BitLength / 3, $"Player Name: {playerInfo.PlayerName}");
 
             playerInfo.attributes = Attributes.Read(mainReader);
             if (playerInfo.attributes.attributeList.SingleOrDefault(x => x.Id == 12)?.Value != playerInfo.playerLevel)
@@ -114,7 +115,7 @@ namespace D2SLib2.Structure.Player
             playerInfo.inventory = Inventory.Read(mainReader);
 
             // To ensure no issues when setting bits
-            playerInfo.Progression = new ProgressionClass(playerInfo.progressionFlags, playerInfo.playerClass, playerInfo.statusClass.Expansion, playerInfo.statusClass.Hardcore);
+            playerInfo.Progression = new ProgressionClass(playerInfo.progressionFlags!, playerInfo.playerClass, playerInfo.statusClass.Expansion, playerInfo.statusClass.Hardcore);
             return playerInfo;
         }
     }
@@ -130,14 +131,17 @@ namespace D2SLib2.Structure.Player
         // 5 IsExpansion
         // 6 IsLadder (not really used in single player though?)
         // 7 ?
-
+        public Bit[]? Flags { get; set; } = null;
         public bool Hardcore = false;
         public bool Died = false;
         public bool Expansion = false;
         public bool Ladder = false;
 
-        public StatusClass(Bit[] flags)
+        public StatusClass(Bit[]? flags)
         {
+            if(flags == null)
+                throw new ArgumentNullException(nameof(flags));
+            Flags = flags;
             Hardcore = flags[2];
             Died = flags[3];
             Expansion = flags[5];
@@ -249,6 +253,7 @@ namespace D2SLib2.Structure.Player
 
     public class DifficultyClass
     {
+        public Bit[]? flags { get; set; } = new Bit[8];
         public bool Active { get; set; } = false;
         public bool Act1 { get; set; } = false;
         public bool Act2 { get; set; } = false;
@@ -256,14 +261,26 @@ namespace D2SLib2.Structure.Player
         public bool Act4 { get; set; } = false;
         public bool Act5 { get; set; } = false;
 
-        public DifficultyClass(Bit[] flags)
+        public DifficultyClass()
         {
-            Active = flags[7];
-            Act1 = (bool)flags[0] & !(bool)flags[1] & !(bool)flags[2];
-            Act2 = (bool)flags[0] & (bool)flags[1] & !(bool)flags[2];
-            Act3 = !(bool)flags[0] & (bool)flags[1] & !(bool)flags[2];
-            Act4 = (bool)flags[0] & (bool)flags[1] & (bool)flags[2];
-            Act5 = !(bool)flags[0] & !(bool)flags[1] & (bool)flags[2];
+        }
+
+        public static DifficultyClass Read(BitwiseBinaryReader mainReader)
+        {
+            DifficultyClass d = new DifficultyClass();
+
+            d.flags = mainReader.ReadSkipPositioning<Bit[]>(new OffsetStruct(PlayerInformationOffsets.OFFSET_DIFFICULTY.Offset, PlayerInformationOffsets.OFFSET_DIFFICULTY.BitLength / 3));
+            if(d.flags == null)
+                throw new NullReferenceException(nameof(d));
+
+            d.Active = (bool)d.flags[7];
+            d.Act1 =  (bool)d.flags[0] & !(bool)d.flags[1] & !(bool)d.flags[2];
+            d.Act2 =  (bool)d.flags[0] &  (bool)d.flags[1] & !(bool)d.flags[2];
+            d.Act3 = !(bool)d.flags[0] &  (bool)d.flags[1] & !(bool)d.flags[2];
+            d.Act4 =  (bool)d.flags[0] &  (bool)d.flags[1] &  (bool)d.flags[2];
+            d.Act5 = !(bool)d.flags[0] & !(bool)d.flags[1] &  (bool)d.flags[2];
+
+            return d;
         }
 
         /*
@@ -279,5 +296,5 @@ namespace D2SLib2.Structure.Player
             Act4 should be true     110 00001
             Act5 should be true     001 00001
          */
+        }
     }
-}

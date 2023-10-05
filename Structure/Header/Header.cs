@@ -21,8 +21,14 @@ namespace D2SLib2.Structure.Header
         {
             Header _header = new Header();
             _header.Signature = mainReader.Read<UInt32>(HeaderOffsets.OFFSET_SIGNATURE).ToString("X8");
+            Logger.WriteSection(mainReader, HeaderOffsets.OFFSET_SIGNATURE.BitLength, $"Signature: {_header.Signature}");
+
             _header.Version = (FileVersion)mainReader.Read<UInt32>(HeaderOffsets.OFFSET_VERSION);
+            Logger.WriteSection(mainReader, HeaderOffsets.OFFSET_VERSION.BitLength, $"Version: {_header.Version}");
+
             _header.FileSize = mainReader.Read<UInt32>(HeaderOffsets.OFFSET_FILESIZE);
+            Logger.WriteSection(mainReader, HeaderOffsets.OFFSET_FILESIZE.BitLength, $"File Size: {_header.FileSize}");
+
             _header.FileSizeBits = _header.FileSize * 8;
 
             if (mainReader.BitArray.Length != _header.FileSizeBits || mainReader.ByteArray!.Length != _header.FileSize)
@@ -30,6 +36,8 @@ namespace D2SLib2.Structure.Header
 
             _header.checksum = "0x" + mainReader.Read<UInt32>(HeaderOffsets.OFFSET_CHECKSUM).ToString("X8");
             var calcChecksum = Checksum.CalculateChecksum(mainReader.ByteArray);
+            Logger.WriteSection(mainReader, HeaderOffsets.OFFSET_CHECKSUM.BitLength, $"Checksum: {_header.checksum} == {calcChecksum}");
+
             if (!_header.checksum.Equals(calcChecksum))
                 throw new Exception("File checksum not calculated correctly. Corrupt save?");
 

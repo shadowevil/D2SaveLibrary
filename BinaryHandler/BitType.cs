@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -104,6 +105,11 @@ namespace D2SLib2.BinaryHandler
                 result |= bits[i].ToInt() << i;
             }
 
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<Int32>(bits, result);
+            }
+
             return result;
         }
 
@@ -122,6 +128,11 @@ namespace D2SLib2.BinaryHandler
                 result |= bits[i].ToUInt() << i;
             }
 
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<UInt32>(bits, result);
+            }
+
             return result;
         }
 
@@ -137,6 +148,17 @@ namespace D2SLib2.BinaryHandler
             {
                 result |= (short)(bits[i].ToInt() << i);
             }
+
+            if (Debugger.IsAttached)
+            {
+                StackTrace st = new StackTrace();
+                if (st.GetFrame(2)!.GetMethod()!.Name == "")
+                {
+                    bool t = true;
+                }
+                Debugging.WriteBitPositionMessage<Int16>(bits, result);
+            }
+
             return result;
         }
 
@@ -152,6 +174,12 @@ namespace D2SLib2.BinaryHandler
             {
                 result |= (ushort)(bits[i].ToInt() << i);
             }
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<UInt32>(bits, result);
+            }
+
             return result;
         }
 
@@ -167,6 +195,12 @@ namespace D2SLib2.BinaryHandler
             {
                 result |= (long)(bits[i].ToUlong() << i);
             }
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<Int64>(bits, result);
+            }
+
             return result;
         }
 
@@ -182,6 +216,12 @@ namespace D2SLib2.BinaryHandler
             {
                 result |= (ulong)bits[i].ToUlong() << i;
             }
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<UInt64>(bits, result);
+            }
+
             return result;
         }
 
@@ -194,6 +234,12 @@ namespace D2SLib2.BinaryHandler
                 Array.Copy(bits, i * 8, byteBits, 0, 8);
                 byteArray[i] = (byte)byteBits.ToInt32(littleEndian);
             }
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<string>(bits, Encoding.UTF8.GetString(byteArray));
+            }
+
             return Encoding.UTF8.GetString(byteArray);
         }
 
@@ -201,6 +247,11 @@ namespace D2SLib2.BinaryHandler
         {
             if (bits.Length > 8)
                 throw new ArgumentException("Incorrect number of bits for byte.");
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<byte>(bits, (byte)bits.ToInt16(littleEndian));
+            }
 
             return (byte)bits.ToInt16(littleEndian);
         }
@@ -220,13 +271,28 @@ namespace D2SLib2.BinaryHandler
                 byteArray[i] = byteBits.ToByte(littleEndian);
             }
 
+            if (Debugger.IsAttached)
+            {
+                string bytes = "";
+                foreach (byte bite in byteArray)
+                {
+                    bytes += bite.ToString("X2");
+                }
+                Debugging.WriteBitPositionMessage<string>(bits, bytes);
+            }
+
             return byteArray;
         }
 
         public static char ToChar(this Bit[] bits, bool littleEndian = true)
         {
-            if (bits.Length != 8)
+            if (bits.Length > 8)
                 throw new ArgumentException("Incorrect number of bits for char.");
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<char>(bits, (char)bits.ToInt16(littleEndian));
+            }
 
             return (char)bits.ToInt16(littleEndian);
         }
@@ -243,6 +309,12 @@ namespace D2SLib2.BinaryHandler
                 Array.Copy(bits, i * 8, charBits, 0, 8);
                 chars[i] = charBits.ToChar(littleEndian);
             }
+
+            if (Debugger.IsAttached)
+            {
+                Debugging.WriteBitPositionMessage<string>(bits, new string(chars));
+            }
+
             return chars;
         }
 
@@ -252,6 +324,16 @@ namespace D2SLib2.BinaryHandler
             for (int i = 0; i < result.Length; i++)
             {
                 result[i] = Convert.ToBoolean(bits[i]);
+            }
+            return result;
+        }
+
+        public static string ToStringRepresentation(this Bit[] bits)
+        {
+            string result = "";
+            foreach(Bit b in bits)
+            {
+                result += b.ToInt().ToString();
             }
             return result;
         }

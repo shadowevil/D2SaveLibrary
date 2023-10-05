@@ -3,7 +3,9 @@ using D2SLib2.Structure.Player.Item;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +13,8 @@ namespace D2SLib2.BinaryHandler
 {
     public class BitwiseBinaryReader
     {
+        public static BitwiseBinaryReader? instance = null;
+        public static BitwiseBinaryReader? subinstance = null;
         public Bit[] BitArray { get; private set; } = new Bit[1];
         public byte[]? ByteArray { get; private set; } = null;
         public int bitPosition { get; private set; } = 0;
@@ -20,11 +24,14 @@ namespace D2SLib2.BinaryHandler
         {
             ByteArray = File.ReadAllBytes(filename);
             BitArray = Bit.ConvertByteArrayToBitArray(ByteArray);
+            instance = this;
         }
 
         public BitwiseBinaryReader(Bit[] bitArray)
         {
             BitArray = bitArray;
+            ByteArray = bitArray.ToBytes();
+            subinstance = this;
         }
 
         public void SetBytePosition(int bytePosition) => bitPosition = bytePosition * 8;
@@ -89,6 +96,7 @@ namespace D2SLib2.BinaryHandler
         public byte ReadByte(bool littleEndian = true)
         {
             Bit[] bits = ReadBits(8);
+
             return (byte)bits.ToUInt32(littleEndian);
         }
 
@@ -99,6 +107,7 @@ namespace D2SLib2.BinaryHandler
             {
                 result[i] = ReadByte(littleEndian);
             }
+
             return result;
         }
 
@@ -231,14 +240,14 @@ namespace D2SLib2.BinaryHandler
                 SetBitPosition(bitOffset);
             }
 
-            var newbits = PeekBits(8);
+            var newbits = PeekBits(bitLength + 8);
 
             if (bitLength <= 0) return default;
 
             if (typeof(T) == typeof(Bit) && bitLength == 1)
                 return (T)(object)ReadBit();
 
-            if (typeof(T) == typeof(Bit[]) && bitLength > 8)
+            if (typeof(T) == typeof(Bit[]) && bitLength >= 8)
                 return (T)(object)ReadBits(bitLength);
 
             if (typeof(T) == typeof(byte) && bitLength <= 8)

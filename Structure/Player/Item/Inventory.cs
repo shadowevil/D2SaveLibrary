@@ -18,16 +18,21 @@ namespace D2SLib2.Structure.Player.Item
 
         public static Inventory Read(BitwiseBinaryReader mainReader)
         {
+            Logger.WriteBeginSection(mainReader, $"[Begin Inventory]");
             Inventory inventory = new Inventory();
             mainReader.SetBitPosition(InventoryOffset);
             inventory.ItemCount = (int)mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_ITEM_COUNT);
+            Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_ITEM_COUNT.BitLength, $"Item Count: {inventory.ItemCount}");
             
             inventory.ItemList = new HashSet<ItemStructure>();
             for(int i=0;i<inventory.ItemCount;i++)
             {
+                Logger.WriteBeginSection(mainReader, $"[Begin reading item #{i}]");
                 inventory.ItemList.Add(new ItemStructure(mainReader));
+                Logger.WriteEndSection(mainReader, $"[End reading item #{i}]");
             }
 
+            Logger.WriteEndSection(mainReader, $"[End Inventory]");
             return inventory;
         }
 
@@ -36,12 +41,14 @@ namespace D2SLib2.Structure.Player.Item
         public static void FindInventoryOffsetInBytes(BitwiseBinaryReader mainReader)
         {
             mainReader.SetBytePosition(InventoryOffsets.OFFSET_START_SEARCH.Offset);
-            while (mainReader.PeekBits(16).ToStr() != InventoryOffsets.OFFSET_START_SEARCH.Signature) mainReader.ReadByte();
+            while (mainReader.PeekBits(16).ToStr() != InventoryOffsets.OFFSET_START_SEARCH.Signature) mainReader.SkipBytes(1);
 
             if (mainReader.ReadSkipPositioning<string>(InventoryOffsets.OFFSET_START_SEARCH) != InventoryOffsets.OFFSET_START_SEARCH.Signature)
                 throw new OffsetException("Unable to find Inventory offset, corrupt save?");
 
             InventoryOffset = mainReader.bitPosition;
+            Logger.WriteSection(mainReader, 0, $"Inventory Offset found: {InventoryOffset / 8} | {InventoryOffset}");
+            mainReader.SetBitPosition(0);
         }
     }
 }

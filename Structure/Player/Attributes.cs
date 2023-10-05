@@ -27,10 +27,12 @@ namespace D2SLib2.Structure.Player
             while(mainReader.PeekBits(9).ToUInt16() != 0x1FF)
             {
                 ushort attributeId = mainReader.ReadBits(9).ToUInt16();
+                Logger.WriteSection(mainReader, 9, $"Attribute Id: {attributeId}");
                 uint attributeValue = uint.MaxValue;
                 if (D2S.instance!.dbContext!.ItemStatCosts.SingleOrDefault(x => x.Id == attributeId)?.CsvBits is double csvBits)
                 {
                     attributeValue = mainReader.ReadBits((int)csvBits).ToUInt32();
+                    Logger.WriteSection(mainReader, (int)csvBits, $"Attribute Value: {attributeValue}");
                 }
                 else throw new Exception($"Unable to query database with attribute Id: {attributeId}");
 
@@ -42,6 +44,7 @@ namespace D2SLib2.Structure.Player
                     if(valShift > 0)
                     {
                         attributeValue >>= (int)valShift;
+                        Logger.WriteSection(mainReader, (int)csvBits, $"After Valshift Attribute Value: {attributeValue}");
                     }
                 }
 
