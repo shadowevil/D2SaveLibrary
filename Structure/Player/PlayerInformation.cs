@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
 
 namespace D2SLib2.Structure.Player
 {
@@ -27,10 +28,6 @@ namespace D2SLib2.Structure.Player
         public UInt32 SwitchLeftMouseSkill = UInt32.MaxValue;
         public UInt32 SwitchRightMouseSkill = UInt32.MaxValue;
 
-        //private Bit[,] DifficultyFlags = new Bit[3, 8];
-        //public DifficultyClass Normal => new DifficultyClass(DifficultyFlags.GetRow(0).ToArray());
-        //public DifficultyClass Nightmare => new DifficultyClass(DifficultyFlags.GetRow(1).ToArray());
-        //public DifficultyClass Hell => new DifficultyClass(DifficultyFlags.GetRow(2).ToArray());
         public DifficultyClass? Normal { get; set; } = null;
         public DifficultyClass? Nightmare { get; set; } = null;
         public DifficultyClass? Hell { get; set; } = null;
@@ -42,6 +39,15 @@ namespace D2SLib2.Structure.Player
         public Attributes? attributes = null;
         public SkillsClass? skillsClass = null;
         public Inventory? inventory = null;
+
+        public int IsPlayerDeadCount = 0;
+        public List<Point>? CorpseLocation { get; set; } = null;
+        public Inventory? CorpseInventory = null;
+
+        public Inventory? MercenaryInventory = null;
+
+        public bool HasIronGolem = false;
+        public ItemStructure? IronGolemItem { get; set; } = null;
 
         public PlayerInformation() { }
 
@@ -112,11 +118,90 @@ namespace D2SLib2.Structure.Player
 
             playerInfo.skillsClass = SkillsClass.Read(mainReader, playerInfo.playerClass);
 
+            Logger.WriteBeginSection("[Begin Inventory Reading]");
+            mainReader.SetBitPosition(Inventory.InventoryOffset);
             playerInfo.inventory = Inventory.Read(mainReader);
+            Inventory.EndInventoryOffset = mainReader.bitPosition;
+            Logger.WriteEndSection("[End Inventory Reading]");
+
+            Logger.WriteBeginSection("[Begin Corpse Inventory Reading]");
+            playerInfo.ReadCorpseInformation(mainReader);
+            Logger.WriteEndSection("[End Corpse Inventory Reading]");
+
+            if (playerInfo.statusClass.Expansion)
+            {
+                Logger.WriteBeginSection("[Begin Mercenary Inventory Reading]");
+                playerInfo.ReadMercenaryInventory(mainReader);
+                Logger.WriteEndSection("[End Mercenary Inventory Reading]");
+
+                Logger.WriteBeginSection("[Begin Iron Golem Inventory Reading]");
+                playerInfo.ReadIronGolemInventory(mainReader);
+                Logger.WriteEndSection("[End Iron Golem Inventory Reading]");
+            }
 
             // To ensure no issues when setting bits
             playerInfo.Progression = new ProgressionClass(playerInfo.progressionFlags!, playerInfo.playerClass, playerInfo.statusClass.Expansion, playerInfo.statusClass.Hardcore);
             return playerInfo;
+        }
+
+        public void ReadIronGolemInventory(BitwiseBinaryReader mainReader)
+        {
+            if (Inventory.EndOfMercenaryOffset == -1) throw new Exception("End of mercenary offset not set");
+
+            mainReader.SetBitPosition(Inventory.EndOfMercenaryOffset);
+            if (mainReader.ReadSkipPositioning<string>(PlayerInformationOffsets.OFFSET_IRON_GOLEM_MARKER) != PlayerInformationOffsets.OFFSET_IRON_GOLEM_MARKER.Signature)
+                throw new Exception("Iron Golem Inventory marker not found");
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_IRON_GOLEM_MARKER.BitLength, $"Iron Golem Marker: {PlayerInformationOffsets.OFFSET_IRON_GOLEM_MARKER.Signature}");
+
+            if ((HasIronGolem = Convert.ToBoolean(mainReader.ReadSkipPositioning<byte>(PlayerInformationOffsets.OFFSET_IRON_GOLEM_BOOL))))
+            {
+                IronGolemItem = new ItemStructure(mainReader);
+            }
+        }
+
+        public void ReadMercenaryInventory(BitwiseBinaryReader mainReader)
+        {
+            if (Inventory.EndCorpseOffset == -1) throw new Exception("End of corpse information not set");
+
+            mainReader.SetBitPosition(Inventory.EndCorpseOffset);
+            if (mainReader.ReadSkipPositioning<string>(PlayerInformationOffsets.OFFSET_MERCENARY_INVENTORY_MARKER) != PlayerInformationOffsets.OFFSET_MERCENARY_INVENTORY_MARKER.Signature)
+                throw new Exception("Mercenary Inventory marker not found");
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_MERCENARY_INVENTORY_MARKER.BitLength, $"Mercenary Inventory Marker: {PlayerInformationOffsets.OFFSET_MERCENARY_INVENTORY_MARKER.Signature}");
+
+            if (D2S.instance?.mercenary!.Seed > 0)
+            {
+                MercenaryInventory = Inventory.Read(mainReader);
+            }
+            Inventory.EndOfMercenaryOffset = mainReader.bitPosition;
+        }
+
+        public void ReadCorpseInformation(BitwiseBinaryReader mainReader)
+        {
+            if (Inventory.EndInventoryOffset == -1) throw new Exception("End of inventory not found, unable to read Corpse Information");
+
+            mainReader.SetBitPosition(Inventory.EndInventoryOffset);
+            if (mainReader.ReadSkipPositioning<string>(PlayerInformationOffsets.OFFSET_CORPSE_INFORMATION_MARKER) != PlayerInformationOffsets.OFFSET_CORPSE_INFORMATION_MARKER.Signature)
+                throw new Exception("Corpse marker not found");
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_CORPSE_INFORMATION_MARKER.BitLength, $"Corpse Marker: {PlayerInformationOffsets.OFFSET_CORPSE_INFORMATION_MARKER.Signature}");
+
+            IsPlayerDeadCount = mainReader.ReadSkipPositioning<UInt16>(PlayerInformationOffsets.OFFSET_CORPSE_COUNT);
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_CORPSE_COUNT.BitLength, $"Corpse Count: {IsPlayerDeadCount}");
+            if (IsPlayerDeadCount == 0) Inventory.EndCorpseOffset = mainReader.bitPosition;
+
+            CorpseLocation = new List<Point>();
+            for (int i = 0; i < IsPlayerDeadCount; i++)
+            {
+                mainReader.SkipBits(32); // Unknown
+                CorpseLocation.Add(
+                    new Point(
+                            (int)mainReader.ReadSkipPositioning<UInt32>(PlayerInformationOffsets.OFFSET_CORPSE_XY_LOCATION),
+                            (int)mainReader.ReadSkipPositioning<UInt32>(PlayerInformationOffsets.OFFSET_CORPSE_XY_LOCATION)
+                        )
+                    );
+                Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_CORPSE_XY_LOCATION.BitLength * 2, $"Corpse Location [{CorpseLocation.Count - 1}]: {CorpseLocation.Last().X} {CorpseLocation.Last().Y}");
+                CorpseInventory = Inventory.Read(mainReader);
+            }
+            Inventory.EndCorpseOffset = mainReader.bitPosition;
         }
     }
 

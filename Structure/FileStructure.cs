@@ -31,6 +31,12 @@ namespace D2SLib2.Structure
         public static readonly OffsetStruct OFFSET_DIFFICULTY = new OffsetStruct                        (168,   24);
         public static readonly OffsetStruct OFFSET_MAPID = new OffsetStruct                             (171,   32);
         public static readonly OffsetStruct OFFSET_PLAYER_NAME = new OffsetStruct                       (267,   128);
+        public static readonly OffsetStruct OFFSET_CORPSE_INFORMATION_MARKER = new OffsetStruct         (-1,    16, signature: "JM");
+        public static readonly OffsetStruct OFFSET_CORPSE_COUNT = new OffsetStruct                      (-1,    16);
+        public static readonly OffsetStruct OFFSET_CORPSE_XY_LOCATION = new OffsetStruct                (-1,    32);
+        public static readonly OffsetStruct OFFSET_MERCENARY_INVENTORY_MARKER = new OffsetStruct        (-1,    16, signature: "jf");
+        public static readonly OffsetStruct OFFSET_IRON_GOLEM_MARKER = new OffsetStruct                 (-1,    16, signature: "kf");
+        public static readonly OffsetStruct OFFSET_IRON_GOLEM_BOOL = new OffsetStruct                   (-1,    8);
     }
 
     public static class OtherOffsets
@@ -46,20 +52,42 @@ namespace D2SLib2.Structure
         
         public static readonly OffsetStruct OFFSET_NPC_MARKER = new OffsetStruct                        (713,    16);
         public static readonly OffsetStruct OFFSET_NPC_SIZE = new OffsetStruct                          (715,    16);
-        public static readonly OffsetStruct OFFSET_NPC_NORMAL_INTRODUCTION = new OffsetStruct           (717,    384);
-        public static readonly OffsetStruct OFFSET_NPC_NIGHTMARE_INTRODUCTION = new OffsetStruct        (765,    384);
-        public static readonly OffsetStruct OFFSET_NPC_HELL_INTRODUCTION = new OffsetStruct             (813,    384);
+        public static readonly OffsetStruct OFFSET_NPC_INTRODUCTION = new OffsetStruct                  (717,    192);
+        public static readonly OffsetStruct OFFSET_NPC_CONGRATULATION = new OffsetStruct                (741,    192);
 
-        // Are these even used!?
-        public static readonly OffsetStruct OFFSET_NPC_NORMAL_CONGRATULATIONS = new OffsetStruct        (861,    384);
-        public static readonly OffsetStruct OFFSET_NPC_NIGHTMARE_CONGRATULATIONS = new OffsetStruct     (909,    384);
-        public static readonly OffsetStruct OFFSET_NPC_HELL_CONGRATULATIONS = new OffsetStruct          (957,    384);
-        // What even
+        // Add either OFFSET_NPC_INTRODUCTION or CONGRATULATION byte offset and
+        //  add 5 bytes per difficulty and then multiply by 8 for bit offset
+        public static readonly OffsetStruct OFFSET_NPC_WARRIV_ACT_II = new OffsetStruct                 (0,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_CHARSI = new OffsetStruct                        (2,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_WARRIV_ACT_I = new OffsetStruct                  (3,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_KASHYA = new OffsetStruct                        (4,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_AKARA = new OffsetStruct                         (5,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_GHEED = new OffsetStruct                         (6,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_GREIZ = new OffsetStruct                         (8,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_JERHYN = new OffsetStruct                        (9,      1, true);
+        public static readonly OffsetStruct OFFSET_NPC_MESHIF_ACT_II = new OffsetStruct                 (10,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_GEGLASH = new OffsetStruct                       (11,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_LYSNADER = new OffsetStruct                      (12,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_FARA = new OffsetStruct                          (13,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_DROGAN = new OffsetStruct                        (14,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_ALKOR = new OffsetStruct                         (16,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_HRATLI = new OffsetStruct                        (17,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_ASHERA = new OffsetStruct                        (18,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_CAIN_ACT_III = new OffsetStruct                  (21,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_ELZIX = new OffsetStruct                         (23,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_MALAH = new OffsetStruct                         (24,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_ANYA = new OffsetStruct                          (25,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_NATALYA = new OffsetStruct                       (27,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_MESHIF_ACT_III = new OffsetStruct                (28,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_ORMUS = new OffsetStruct                         (31,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_CAIN_ACT_V = new OffsetStruct                    (37,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_QUALKEHK = new OffsetStruct                      (38,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_NIHLATHAK = new OffsetStruct                     (39,     1, true);
     }
 
     public static class QuestOffsets
     {                                                             //                           byte Offset      Length in bits
-        public static readonly OffsetStruct OFFSET_SIGNATURE = new OffsetStruct                         (335,   32, "Woo!");
+        public static readonly OffsetStruct OFFSET_SIGNATURE = new OffsetStruct                         (335,   32, signature: "Woo!");
         public static readonly OffsetStruct OFFSET_VERSION = new OffsetStruct                           (339,   32);
         public static readonly OffsetStruct OFFSET_SIZE = new OffsetStruct                              (343,   16);
         
@@ -104,7 +132,7 @@ namespace D2SLib2.Structure
 
     public static class WaypointOffsets
     {                                                             //                           byte Offset      Length in bits
-        public static readonly OffsetStruct OFFSET_SIGNATURE = new OffsetStruct                         (633,   16, "WS");
+        public static readonly OffsetStruct OFFSET_SIGNATURE = new OffsetStruct                         (633,   16, signature: "WS");
         public static readonly OffsetStruct OFFSET_VERSION = new OffsetStruct                           (635,   32);
         public static readonly OffsetStruct OFFSET_SIZE = new OffsetStruct                              (639,   16);
         
@@ -130,18 +158,18 @@ namespace D2SLib2.Structure
 
     public static class AttributeOffsets
     {
-        public static readonly OffsetStruct OFFSET_SIGNATURE = new OffsetStruct                         (765,   16, "gf");
+        public static readonly OffsetStruct OFFSET_SIGNATURE = new OffsetStruct                         (765,   16, signature: "gf");
     }
 
     public static class SkillsOffsets
     {
-        public static readonly OffsetStruct OFFSET_START_SEARCH = new OffsetStruct                      (765,   16, "if");
+        public static readonly OffsetStruct OFFSET_START_SEARCH = new OffsetStruct                      (765,   16, signature: "if");
         public static readonly OffsetStruct OFFSET_SKILL = new OffsetStruct                             (-1,    8);
     }
 
     public static class InventoryOffsets
     {
-        public static readonly OffsetStruct OFFSET_START_SEARCH = new OffsetStruct                      (765,   16, "JM");
+        public static readonly OffsetStruct OFFSET_START_SEARCH = new OffsetStruct                      (765,   16, signature: "JM");
         
         // This section of bits/bytes must be read in succession as each item is not searchable
         public static readonly ItemOffsetStruct OFFSET_ITEM_COUNT = new ItemOffsetStruct                (-1,    16);
@@ -201,13 +229,17 @@ namespace D2SLib2.Structure
     public struct OffsetStruct
     {
         public int Offset { get; }
+        public int BitOffset { get; }
         public int ByteLength { get; }
         public int BitLength { get; }
         public string Signature { get; }
+        public bool isUsingBitOffset = false;
 
-        public OffsetStruct(int offset, int bitLength, string signature = "")
+        public OffsetStruct(int offset, int bitLength, bool isBitOffsetEnabled = false, string signature = "")
         {
-            Offset = offset;
+            isUsingBitOffset = isBitOffsetEnabled;
+            if (isUsingBitOffset) { BitOffset = offset; Offset = -1;  }
+            else { Offset = offset; BitOffset = -1; }
             BitLength = bitLength;
             ByteLength = bitLength / 8;
             Signature = signature;

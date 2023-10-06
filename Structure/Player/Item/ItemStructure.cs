@@ -473,7 +473,7 @@ namespace D2SLib2.Structure.Player.Item
                 ?? throw new InvalidItemException("Unable to read bits for personalized name."));
             for (int i = 0; i < 16; i++)
             {
-                if (D2S.instance!.fileHeader.Version > D2SLib2.Structure.Header.FileVersion.D2R_V10x_To_11x)
+                if (D2S.instance!.fileHeader!.Version > D2SLib2.Structure.Header.FileVersion.D2R_V10x_To_11x)
                 {
                     if (personalizedReader.PeekItemBits<char>(InventoryOffsets.OFFSET_PERSONALIZED_CHAR) == '\0')
                         break;

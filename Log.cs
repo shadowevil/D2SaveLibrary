@@ -12,6 +12,9 @@ namespace D2SLib2
         public static string LogPath { get; set; } = string.Empty;
         private static Log? log;
 
+        private static int BitPositionPadding = 20;
+        private static int BitLengthPadding = 5;
+
         public static void WriteLine(int bytePosition, int bitPosition, string str)
         {
             if (log == null) log = new Log(LogPath);
@@ -19,9 +22,8 @@ namespace D2SLib2
             if(log.fs.BaseStream.CanWrite)
             {
                 string combinedPos = $"{bytePosition}:{bitPosition}";
-                string paddedCombinedPos = combinedPos.PadRight(22, ' ');
+                string paddedCombinedPos = combinedPos.PadRight(BitPositionPadding, ' ');
                 log.fs.WriteLine($"[{paddedCombinedPos}]: {str}");
-                Console.WriteLine($"[{paddedCombinedPos}]: {str}");
             }
         }
 
@@ -31,8 +33,8 @@ namespace D2SLib2
             if (log.fs == null) throw new Exception("Log file stream was null");
             if (log.fs.BaseStream.CanWrite)
             {
-                string combinedPos = $"{bytePosition}:{bitPosition}:{newBitPosition}[{bitPosition-newBitPosition}]";
-                string paddedCombinedPos = combinedPos.PadRight(22, ' ');
+                string combinedPos = $"{bytePosition}:{bitPosition}:{newBitPosition}[{newBitPosition-bitPosition}]";
+                string paddedCombinedPos = combinedPos.PadRight(BitPositionPadding, ' ');
                 log.fs.WriteLine($"[{paddedCombinedPos}]: {str}");
                 Console.WriteLine($"[{paddedCombinedPos}]: {str}");
             }
@@ -44,27 +46,28 @@ namespace D2SLib2
             if (log.fs == null) throw new Exception("Log file stream was null");
             if (log.fs.BaseStream.CanWrite)
             {
-                string combinedPos = $"{br.bytePosition - (bitOffset / 8)}:{br.bitPosition - bitOffset}:{br.bitPosition}[{br.bitPosition - (br.bitPosition - bitOffset)}]";
-                string paddedCombinedPos = combinedPos.PadRight(22, ' ');
-                log.fs.WriteLine($"[{paddedCombinedPos}]: \t{str}");
+                string combinedPos = $"{br.bytePosition - (bitOffset / 8)}:{br.bitPosition - bitOffset}:{br.bitPosition}";
+                string paddedCombinedPos = combinedPos.PadRight(BitPositionPadding, ' ');
+                string bitLength = $"({br.bitPosition - (br.bitPosition - bitOffset)})".PadLeft(BitLengthPadding);
+                log.fs.WriteLine($"[{paddedCombinedPos}{bitLength}]: \t{str}");
             }
         }
 
-        public static void WriteBeginSection(BitwiseBinaryReader br, string str)
+        public static void WriteBeginSection(string str)
         {
             if (log == null) log = new Log(LogPath);
             if (log.fs == null) throw new Exception("Log file stream was null");
             if (log.fs.BaseStream.CanWrite)
             {
-                string combinedPos = $"{br.bytePosition}:{br.bitPosition}";
-                string paddedCombinedPos = combinedPos.PadRight(22, ' ');
+                string combinedPos = $"0:0";
+                string paddedCombinedPos = combinedPos.PadRight(BitPositionPadding + BitLengthPadding, ' ');
                 log.fs.WriteLine($"[{paddedCombinedPos}]: {str}");
             }
         }
 
-        public static void WriteEndSection(BitwiseBinaryReader br, string str)
+        public static void WriteEndSection(string str)
         {
-            WriteBeginSection(br, str);
+            WriteBeginSection(str);
         }
 
         public static void WriteHeader(string str)

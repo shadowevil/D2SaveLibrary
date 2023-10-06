@@ -1,4 +1,5 @@
 ﻿using D2SLib2.BinaryHandler;
+using D2SLib2.Structure.Player.Item;
 using System;
 using System.Collections.Generic;
 using System.Linq;

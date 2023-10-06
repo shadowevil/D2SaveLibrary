@@ -151,11 +151,6 @@ namespace D2SLib2.BinaryHandler
 
             if (Debugger.IsAttached)
             {
-                StackTrace st = new StackTrace();
-                if (st.GetFrame(2)!.GetMethod()!.Name == "")
-                {
-                    bool t = true;
-                }
                 Debugging.WriteBitPositionMessage<Int16>(bits, result);
             }
 

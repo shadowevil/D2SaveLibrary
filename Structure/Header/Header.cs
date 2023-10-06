@@ -17,7 +17,7 @@ namespace D2SLib2.Structure.Header
 
         public Header() { }
 
-        public static Header Read(BitwiseBinaryReader mainReader)
+        public static Header? Read(BitwiseBinaryReader mainReader)
         {
             Header _header = new Header();
             _header.Signature = mainReader.Read<UInt32>(HeaderOffsets.OFFSET_SIGNATURE).ToString("X8");
@@ -25,6 +25,13 @@ namespace D2SLib2.Structure.Header
 
             _header.Version = (FileVersion)mainReader.Read<UInt32>(HeaderOffsets.OFFSET_VERSION);
             Logger.WriteSection(mainReader, HeaderOffsets.OFFSET_VERSION.BitLength, $"Version: {_header.Version}");
+
+            if(_header.Version != FileVersion.D2R_V14x_LATEST)
+            {
+                Logger.WriteLine(0, 0, "WRONG VERSION");
+                D2S.instance!.CloseFlag = true;
+                return null;
+            }
 
             _header.FileSize = mainReader.Read<UInt32>(HeaderOffsets.OFFSET_FILESIZE);
             Logger.WriteSection(mainReader, HeaderOffsets.OFFSET_FILESIZE.BitLength, $"File Size: {_header.FileSize}");

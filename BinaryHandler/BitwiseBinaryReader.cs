@@ -186,12 +186,25 @@ namespace D2SLib2.BinaryHandler
 
         public T? Read<T>(OffsetStruct oStruct, int bitOffset = 0, bool littleEndian = true)
         {
-            return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, littleEndian);
+            if (!oStruct.isUsingBitOffset)
+            {
+                return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, littleEndian);
+            } else
+            {
+                return Read<T>(oStruct.BitOffset + bitOffset, oStruct.BitLength, littleEndian);
+            }
         }
 
         public T? ReadSkipPositioning<T>(OffsetStruct oStruct, int bitOffset = 0, bool littleEndian = true)
         {
-            return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, littleEndian, true);
+            if (!oStruct.isUsingBitOffset)
+            {
+                return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, littleEndian, true);
+            }
+            else
+            {
+                return Read<T>(oStruct.BitOffset + bitOffset, oStruct.BitLength, littleEndian, true);
+            }
         }
 
 
@@ -239,8 +252,6 @@ namespace D2SLib2.BinaryHandler
             {
                 SetBitPosition(bitOffset);
             }
-
-            var newbits = PeekBits(bitLength + 8);
 
             if (bitLength <= 0) return default;
 
