@@ -26,6 +26,11 @@ namespace D2SLib2.BinaryHandler
             }
         }
 
+        public Bit(bool value)
+        {
+            _value = (value ? 1 : 0);
+        }
+
         public int Value
         {
             get { return _value; }
@@ -52,7 +57,7 @@ namespace D2SLib2.BinaryHandler
         public ushort ToUshort() => (ushort)Value;
         public static explicit operator Bit(int value) => new Bit(value);
 
-        public static Bit[] ConvertByteArrayToBitArray(byte[] byteArray)
+        public static Bit[] ConvertByteArrayToBitArray(byte[] byteArray, bool isLittleEndian = true)
         {
             int totalBits = byteArray.Length * 8; // Total number of bits in the byte array
             Bit[] bitArray = new Bit[totalBits]; // Array to hold the Bit structs
@@ -62,8 +67,17 @@ namespace D2SLib2.BinaryHandler
                 byte currentByte = byteArray[i];
                 for (int j = 0; j < 8; j++) // Loop through each bit in the byte
                 {
-                    int bitPosition = i * 8 + j; // Calculate the position in the Bit array
-                    int bitValue = (currentByte >> j) & 1; // Extract the bit value using little-endian order
+                    int bitPosition;
+                    if (isLittleEndian)
+                    {
+                        bitPosition = i * 8 + j; // Little-endian bit position
+                    }
+                    else
+                    {
+                        bitPosition = (byteArray.Length - i - 1) * 8 + (7 - j); // Big-endian bit position
+                    }
+
+                    int bitValue = (currentByte >> j) & 1; // Extract the bit value
                     bitArray[bitPosition] = new Bit(bitValue); // Initialize the Bit struct and store it
                 }
             }
@@ -74,7 +88,7 @@ namespace D2SLib2.BinaryHandler
 
     public static class BitArrayExtensions
     {
-        private static Bit[] ReverseByteOrder(Bit[] bits)
+        public static Bit[] ReverseByteOrder(Bit[] bits)
         {
             Bit[] reversedBits = new Bit[bits.Length];
             for (int byteIdx = 0; byteIdx < bits.Length / 8; byteIdx++)

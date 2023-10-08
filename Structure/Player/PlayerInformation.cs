@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Formats.Asn1;
 
 namespace D2SLib2.Structure.Player
 {
@@ -203,6 +204,151 @@ namespace D2SLib2.Structure.Player
             }
             Inventory.EndCorpseOffset = mainReader.bitPosition;
         }
+
+        public bool WriteActiveWeapon(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON.Offset)
+                return false;
+
+           writer.WriteBits(ActiveWeapon.ToBits());
+            return true;
+        }
+
+        public bool WriteCharacterStatus(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.Offset)
+            {
+                if (writer.GetBytes().Length + 16 != PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.Offset)
+                    return false;
+
+               writer.WriteVoidBits(16 * 8);
+            }
+
+           writer.WriteBits(statusClass!.GetFlags().ToBytes().ToBits(), false);
+           return true;
+        }
+
+        public bool WriteProgression(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_PROGRESSION.Offset)
+                return false;
+
+           writer.WriteBits(progressionFlags!.ToBytes().ToBits());
+            return true;
+        }
+
+        public bool WriteClass(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.Offset)
+            {
+                if (writer.GetBytes().Length + 2 != PlayerInformationOffsets.OFFSET_PLAYERCLASS.Offset)
+                    return false;
+
+               writer.WriteVoidBits(2 * 8);
+            }
+
+           writer.WriteBits(((byte)playerClass).ToBits());
+            return true;
+        }
+
+        public bool WritePlayerLevel(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_PLAYERLEVEL.Offset)
+            {
+                if (writer.GetBytes().Length + 2 != PlayerInformationOffsets.OFFSET_PLAYERLEVEL.Offset)
+                    return false;
+
+               writer.WriteBits(((byte)0x10).ToBits());
+               writer.WriteBits(((byte)0x1E).ToBits());
+            }
+
+           writer.WriteBits(((byte)playerLevel).ToBits());
+            return true;
+        }
+
+        public bool WriteLastPlayed(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP.Offset)
+            {
+                if (writer.GetBytes().Length + 4 != PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP.Offset)
+                    return false;
+
+               writer.WriteVoidBits(4 * 8);
+            }
+            TimeSpan timeSpan = CreatedTimeStamp.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            UInt32 unixTimestamp = (UInt32)timeSpan.TotalSeconds;
+           writer.WriteBits(((UInt32)unixTimestamp).ToBits());
+            return true;
+        }
+
+        public bool WriteAssignedSkills(BitwiseBinaryWriter writer)
+        {
+            if(writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.Offset)
+            {
+                if (writer.GetBytes().Length + 4 != PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.Offset)
+                    return false;
+
+               writer.WriteBits(((UInt32)0xFFFFFFFF).ToBits());
+            }
+
+            for (int i = 0; i < 16; i++)
+            {
+                UInt32 skillId = AssignedSkills[i];
+                if (skillId == 0)
+                {
+                   writer.WriteBits(0xFFFF.ToBits());
+                }
+                else
+                {
+                   writer.WriteBits(skillId.ToBits());
+                }
+            }
+
+           writer.WriteBits(LeftMouseSkill.ToBits());
+           writer.WriteBits(RightMouseSkill.ToBits());
+           writer.WriteBits(SwitchLeftMouseSkill.ToBits());
+           writer.WriteBits(SwitchRightMouseSkill.ToBits());
+
+            return true;
+        }
+
+        public bool WriteMapSeed(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_MAPID.Offset)
+                return false;
+
+           writer.WriteBits(MapSeed.ToBits());
+            return true;
+        }
+
+        public bool WritePlayerName(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_PLAYER_NAME.Offset)
+                return false;
+
+            for(int i=0;i<16;i++)
+            {
+                if (PlayerName.Length > i) writer.WriteBits(((byte)PlayerName[i]).ToBits());
+                else writer.WriteBits('\0'.ToBits());
+            }
+
+            return true;
+        }
+
+        public bool WriteCorpseInformation(BitwiseBinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool WriteMercenaryInventoryInformation(BitwiseBinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool WriteIronGolemInformation(BitwiseBinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class StatusClass
@@ -216,21 +362,23 @@ namespace D2SLib2.Structure.Player
         // 5 IsExpansion
         // 6 IsLadder (not really used in single player though?)
         // 7 ?
-        public Bit[]? Flags { get; set; } = null;
-        public bool Hardcore = false;
-        public bool Died = false;
-        public bool Expansion = false;
-        public bool Ladder = false;
+        public Bit[] Flags { get; private set; }
+        public bool Hardcore    { get => Flags[2]; set => Flags[2] = new Bit(value); }
+        public bool Died        { get => Flags[3]; set => Flags[3] = new Bit(value); }
+        public bool Expansion   { get => Flags[5]; set => Flags[5] = new Bit(value); }
+        public bool Ladder      { get => Flags[6]; set => Flags[6] = new Bit(value); }
 
         public StatusClass(Bit[]? flags)
         {
             if(flags == null)
                 throw new ArgumentNullException(nameof(flags));
+
             Flags = flags;
-            Hardcore = flags[2];
-            Died = flags[3];
-            Expansion = flags[5];
-            Ladder = flags[6];
+        }
+
+        public Bit[] GetFlags()
+        {
+            return Flags;
         }
     }
 
@@ -368,6 +516,65 @@ namespace D2SLib2.Structure.Player
             return d;
         }
 
+        public void SetActiveAct(int act)
+        {
+            if (act <= 0) return;
+            if (act > 5) return;
+            if (flags == null) return;
+
+            for (int i = 0; i < flags.Length; i++) flags[i] = new Bit(0);
+
+            switch(act)
+            {
+                case 1:
+                    flags[7] = new Bit(1);
+                    flags[0] = new Bit(1);
+                    flags[1] = new Bit(0);
+                    flags[2] = new Bit(0);
+                    break;
+                case 2:
+                    flags[7] = new Bit(1);
+                    flags[0] = new Bit(1);
+                    flags[1] = new Bit(1);
+                    flags[2] = new Bit(0);
+                    break;
+                case 3:
+                    flags[7] = new Bit(1);
+                    flags[0] = new Bit(0);
+                    flags[1] = new Bit(1);
+                    flags[2] = new Bit(0);
+                    break;
+                case 4:
+                    flags[7] = new Bit(1);
+                    flags[0] = new Bit(1);
+                    flags[1] = new Bit(1);
+                    flags[2] = new Bit(1);
+                    break;
+                case 5:
+                    flags[7] = new Bit(1);
+                    flags[0] = new Bit(0);
+                    flags[1] = new Bit(0);
+                    flags[2] = new Bit(1);
+                    break;
+            }
+
+            Active =    (bool)flags[7];
+            Act1 =      (bool)flags[0] & !(bool)flags[1] & !(bool)flags[2];
+            Act2 =      (bool)flags[0] &  (bool)flags[1] & !(bool)flags[2];
+            Act3 =     !(bool)flags[0] &  (bool)flags[1] & !(bool)flags[2];
+            Act4 =      (bool)flags[0] &  (bool)flags[1] &  (bool)flags[2];
+            Act5 =     !(bool)flags[0] & !(bool)flags[1] &  (bool)flags[2];
+        }
+
+        public bool Write(BitwiseBinaryWriter writer, int difficultyLevel)
+        {
+            if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_DIFFICULTY.Offset + difficultyLevel)
+                return false;
+
+           writer.WriteBits(flags!.ToByte().ToBits());
+            return true;
+        }
+
         /*
             Repeat for each difficulty
             bool[3, 8] (2d array 3 rows of 8 columns each)
@@ -381,5 +588,5 @@ namespace D2SLib2.Structure.Player
             Act4 should be true     110 00001
             Act5 should be true     001 00001
          */
-        }
+    }
     }

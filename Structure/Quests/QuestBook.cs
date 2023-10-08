@@ -40,5 +40,31 @@ namespace D2SLib2.Structure.Quests
 
             return questBook;
         }
+
+        public bool WriteQuests(BitwiseBinaryWriter writer)
+        {
+            if(writer.GetBytes().Length != QuestOffsets.OFFSET_SIGNATURE.Offset)
+            {
+                if (writer.GetBytes().Length + 52 != QuestOffsets.OFFSET_SIGNATURE.Offset)
+                    return false;
+
+                writer.WriteVoidBits(52 * 8);
+            }
+           writer.WriteBits(Signature.ToBits());
+
+            if (writer.GetBytes().Length != QuestOffsets.OFFSET_VERSION.Offset)
+                return false;
+           writer.WriteBits(Version.ToBits());
+
+            if (writer.GetBytes().Length != QuestOffsets.OFFSET_SIZE.Offset)
+                return false;
+           writer.WriteBits(Size.ToBits());
+
+            Normal!.Write(writer, QuestOffsets.OFFSET_NORMAL);
+            Nightmare!.Write(writer, QuestOffsets.OFFSET_NIGHTMARE);
+            Hell!.Write(writer, QuestOffsets.OFFSET_HELL);
+
+            return true;
+        }
     }
 }

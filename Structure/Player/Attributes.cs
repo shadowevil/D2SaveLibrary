@@ -1,4 +1,5 @@
 ﻿using D2SLib2.BinaryHandler;
+using D2SLib2.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +13,8 @@ namespace D2SLib2.Structure.Player
     {
         public HashSet<Attribute> attributeList = new HashSet<Attribute>();
 
+        private List<Bit> attribBits = new List<Bit>();
+
         public Attributes() { }
 
         public static Attributes Read(BitwiseBinaryReader mainReader)
@@ -19,24 +22,30 @@ namespace D2SLib2.Structure.Player
             Attributes att = new Attributes();
 
             mainReader.SetBytePosition(AttributeOffsets.OFFSET_SIGNATURE.Offset);
-            if (mainReader.ReadBits(AttributeOffsets.OFFSET_SIGNATURE.BitLength).ToStr() != "gf")
+            if (mainReader.ReadBits(AttributeOffsets.OFFSET_SIGNATURE.BitLength).ToStr() != AttributeOffsets.OFFSET_SIGNATURE.Signature)
                 throw new OffsetException("Unable to get Attributes signature, corrupt save?");
 
             att.attributeList = new HashSet<Attribute>();
 
             while(mainReader.PeekBits(9).ToUInt16() != 0x1FF)
             {
+                att.attribBits.AddRange(mainReader.PeekBits(9));
                 ushort attributeId = mainReader.ReadBits(9).ToUInt16();
+                if (attributeId == 8)
+                {
+                    bool t = true;
+                }
                 Logger.WriteSection(mainReader, 9, $"Attribute Id: {attributeId}");
-                uint attributeValue = uint.MaxValue;
+                Int32 attributeValue = Int32.MaxValue;
                 if (D2S.instance!.dbContext!.ItemStatCosts.SingleOrDefault(x => x.Id == attributeId)?.CsvBits is double csvBits)
                 {
-                    attributeValue = mainReader.ReadBits((int)csvBits).ToUInt32();
+                    att.attribBits.AddRange(mainReader.PeekBits((int)csvBits));
+                    attributeValue = mainReader.ReadBits((int)csvBits).ToInt32();
                     Logger.WriteSection(mainReader, (int)csvBits, $"Attribute Value: {attributeValue}");
                 }
                 else throw new Exception($"Unable to query database with attribute Id: {attributeId}");
 
-                if (attributeValue == uint.MaxValue)
+                if (attributeValue == Int32.MaxValue)
                     throw new Exception("Invalid attribute value, corrupt save?");
 
                 if(D2S.instance!.dbContext?.ItemStatCosts.SingleOrDefault(x => x.Id == attributeId)?.ValShift is double valShift)
@@ -55,12 +64,42 @@ namespace D2SLib2.Structure.Player
 
             return att;
         }
+
+
+        public List<Bit> attribSaveBits = new List<Bit>();
+        public bool Write(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != AttributeOffsets.OFFSET_SIGNATURE.Offset)
+                return false;
+            writer.WriteBits(AttributeOffsets.OFFSET_SIGNATURE.Signature.ToBits());
+
+            foreach(Attribute a in attributeList)
+            {
+                writer.WriteBits(a.Id.ToBits(), 9);
+                attribSaveBits.AddRange(writer.GetNumBits(a.Id.ToBits(), 9));
+                ItemStatCost? isc = D2S.instance!.dbContext?.ItemStatCosts.SingleOrDefault(x => x.Id == a.Id);
+                if (isc == null) throw new Exception($"ItemStatCost not found for attribute {a.Id}");
+                if (isc.CsvBits == null || isc.CsvBits <= 0) throw new Exception($"ItemStatCost CsvBits for {a.Id} returned null or 0");
+
+                Int32 val = a.Value;
+                if(isc.ValShift != null || isc.ValShift > 0)
+                {
+                    val <<= (int)isc.ValShift;
+                }
+                writer.WriteBits(((Int32)val).ToBits(), (int)isc.CsvBits);
+                attribSaveBits.AddRange(writer.GetNumBits(val.ToBits(), (int)isc.CsvBits));
+            }
+            writer.WriteBits(0x1FF.ToBits(), 9);
+            while (writer.FlushCount != 0) writer.WriteVoidBits(1);
+
+            return true;
+        }
     }
 
     [DebuggerDisplay("{Id}: {Value}")]
     public class Attribute
     {
         public UInt16 Id { get; set; } = UInt16.MaxValue;
-        public UInt32 Value { get; set; } = UInt32.MaxValue;
+        public Int32 Value { get; set; } = Int32.MaxValue;
     }
 }

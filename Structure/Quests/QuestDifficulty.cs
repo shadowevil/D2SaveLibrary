@@ -80,5 +80,50 @@ namespace D2SLib2.Structure.Quests
 
             return questDifficulty;
         }
+
+        public bool Write(BitwiseBinaryWriter writer, OffsetStruct difficultyOffset)
+        {
+            if (writer.GetBytes().Length != difficultyOffset.Offset)
+                return false;
+
+            if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_INTRODUCTION_WARRIV.Offset)
+                return false;
+           writer.WriteBits((Convert.ToUInt16(Introduction_Warriv)).ToBits());
+            Acts.ElementAt(0).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT1.Offset);
+
+            if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT2.Offset)
+                return false;
+           writer.WriteBits((Convert.ToUInt16(Traveled_Act2)).ToBits());
+           writer.WriteBits((Convert.ToUInt16(Introduction_Jerhyn)).ToBits());
+            Acts.ElementAt(1).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT2.Offset);
+
+            if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT3.Offset)
+                return false;
+           writer.WriteBits((Convert.ToUInt16(Traveled_Act3)).ToBits());
+           writer.WriteBits((Convert.ToUInt16(Introduction_Hratli)).ToBits());
+            Acts.ElementAt(2).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT3.Offset);
+
+            if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT4.Offset)
+                return false;
+           writer.WriteBits((Convert.ToUInt16(Traveled_Act4)).ToBits());
+           writer.WriteBits((Convert.ToUInt16(Introduction_Tyeral)).ToBits());
+            Acts.ElementAt(3).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT4.Offset);
+
+            if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT5.Offset)
+                return false;
+           writer.WriteBits((Convert.ToUInt16(Traveled_Act5)).ToBits());
+           writer.WriteBits((Convert.ToUInt16(Introduction_Cain)).ToBits());
+           writer.WriteVoidBits(32);
+            Acts.ElementAt(4).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT5.Offset);
+
+            if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_AKARA_STAT_RESET.Offset)
+                return false;
+           writer.WriteBits((Convert.ToUInt16(Akara_Reset_Stats)).ToBits());
+           writer.WriteBits((Convert.ToUInt16(Act5_Completed)).ToBits());
+
+           writer.WriteVoidBits(10 * 8);
+
+            return true;
+        }
     }
 }

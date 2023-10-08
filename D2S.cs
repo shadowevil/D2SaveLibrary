@@ -21,6 +21,7 @@ namespace D2SLib2
 
         [JsonIgnore]
         public static D2S? instance { get; private set; } = null;
+        public BitwiseBinaryReader? d2sReader { get; private set; } = null;
 
         [JsonIgnore]
         public D2slibDataContext? dbContext { get; private set; } = null;
@@ -51,7 +52,7 @@ namespace D2SLib2
             itemCodeTree.Build();
             dbContext = new D2slibDataContext();
 
-            BitwiseBinaryReader reader = new BitwiseBinaryReader(OpenFilePath);
+            d2sReader = new BitwiseBinaryReader(OpenFilePath);
             string fileName = Path.GetFileNameWithoutExtension(OpenFilePath);
             Logger.LogPath = Directory.GetCurrentDirectory() + $"\\Logs\\{fileName}.d2slog";
             Logger.WriteHeader("#--------------------------------------------------------------------------------------------------------------------#");
@@ -62,47 +63,81 @@ namespace D2SLib2
             Logger.WriteHeader("#--------------------------------------------------------------------------------------------------------------------#");
 
             Logger.WriteBeginSection("[Looking for Inventory]");
-            Inventory.FindInventoryOffsetInBytes(reader);
+            Inventory.FindInventoryOffsetInBytes(d2sReader);
             Logger.WriteEndSection("[End of Inventory Search]");
             Logger.WriteBeginSection("[Looking for Skills]");
-            SkillsClass.FindSkillOffsetInBytes(reader);
+            SkillsClass.FindSkillOffsetInBytes(d2sReader);
             Logger.WriteEndSection("[End of Skills Search]");
 
             Logger.WriteBeginSection("[Begin Reading Header]");
-            fileHeader = Header.Read(reader);
+            fileHeader = Header.Read(d2sReader);
             Logger.WriteEndSection("[End Reading Header]");
             if (!CloseFlag)
             {
                 Logger.WriteBeginSection("[Begin Mercenary]");
-                mercenary = Mercenary.Read(reader);
+                mercenary = Mercenary.Read(d2sReader);
                 Logger.WriteEndSection("[End Mercenary]");
 
                 Logger.WriteBeginSection("[Begin Player Information]");
-                playerInformation = PlayerInformation.Read(reader);
+                playerInformation = PlayerInformation.Read(d2sReader);
                 Logger.WriteEndSection("[End Player Information]");
 
                 Logger.WriteBeginSection("[Begin D2Menu Appearance]");
                 menuAppearance = new MenuAppearance();
-                menuAppearance.Read(reader);
+                menuAppearance.Read(d2sReader);
                 Logger.WriteEndSection("[End D2Menu Appearance]");
 
                 Logger.WriteBeginSection("[Begin D2R Appearance]");
-                menuAppearance.ReadD2R(reader);
+                menuAppearance.ReadD2R(d2sReader);
                 Logger.WriteEndSection("[End D2R Appearance]");
 
                 Logger.WriteBeginSection("[Begin Quests]");
-                questBook = QuestBook.Read(reader);
+                questBook = QuestBook.Read(d2sReader);
                 Logger.WriteEndSection("[End Quests]");
 
                 Logger.WriteBeginSection("[Begin Waypoints]");
-                waypointBook = WaypointBook.Read(reader);
+                waypointBook = WaypointBook.Read(d2sReader);
                 Logger.WriteEndSection("[End Waypoints]");
 
                 Logger.WriteBeginSection("[Begin NPC]");
-                NPC = NPCIntroduction.Read(reader);
+                NPC = NPCIntroduction.Read(d2sReader);
                 Logger.WriteEndSection("[End NPC]");
             }
             Logger.Close();
+        }
+
+        public void WriteD2S()
+        {
+            if (d2sReader == null) return;
+            BitwiseBinaryWriter writer = new BitwiseBinaryWriter();
+
+            fileHeader!                     .Write(writer, d2sReader);
+            playerInformation!              .WriteActiveWeapon(writer);
+            playerInformation!              .WriteCharacterStatus(writer);
+            playerInformation!              .WriteProgression(writer);
+            playerInformation!              .WriteClass(writer);
+            playerInformation!              .WritePlayerLevel(writer);
+            playerInformation!              .WriteLastPlayed(writer);
+            playerInformation!              .WriteAssignedSkills(writer);
+            menuAppearance!                 .Write(writer);
+            playerInformation!.Normal!      .Write(writer, 0);
+            playerInformation!.Nightmare!   .Write(writer, 1);
+            playerInformation!.Hell!        .Write(writer, 2);
+            playerInformation!              .WriteMapSeed(writer);
+            mercenary!                      .Write(writer);
+            menuAppearance!                 .WriteD2S(writer);
+            playerInformation!              .WritePlayerName(writer);
+            questBook!                      .WriteQuests(writer);
+            waypointBook!                   .WriteWaypoints(writer);
+            NPC!                            .Write(writer);
+            playerInformation.attributes!   .Write(writer);
+            
+            // TODO:
+            playerInformation.skillsClass!  .WriteSkills(writer);
+            playerInformation.inventory!    .WriteInventory(writer);
+            playerInformation               .WriteCorpseInformation(writer);
+            playerInformation               .WriteMercenaryInventoryInformation(writer);
+            playerInformation               .WriteIronGolemInformation(writer);
         }
 
         public static void ConvertD2SToJson(D2S d2sInstance)

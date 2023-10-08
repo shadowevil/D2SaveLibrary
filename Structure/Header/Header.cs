@@ -50,5 +50,27 @@ namespace D2SLib2.Structure.Header
 
             return _header;
         }
+
+        public bool Write(BitwiseBinaryWriter mainWriter, BitwiseBinaryReader mainReader)
+        {
+            if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_SIGNATURE.Offset)
+                return false;
+            mainWriter.WriteBits((0xAA55AA55).ToBits());
+
+            if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_VERSION.Offset)
+                return false;
+            mainWriter.WriteBits(((int)Version).ToBits());
+
+            if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_FILESIZE.Offset)
+                return false;
+            mainWriter.WriteBits(FileSize.ToBits());
+
+#warning This function needs to be moved to at the end of the writing process, to ensure that we are writing the correct new checksum
+            if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_CHECKSUM.Offset)
+                return false;
+            mainWriter.WriteBits(Checksum.ComputeChecksum(mainReader.ByteArray!).ToBits());
+
+            return true;
+        }
     }
 }

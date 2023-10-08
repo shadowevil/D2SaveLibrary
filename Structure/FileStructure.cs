@@ -41,7 +41,7 @@ namespace D2SLib2.Structure
 
     public static class OtherOffsets
     {                                                             //                           byte Offset      Length in bits
-        public static readonly OffsetStruct OFFSET_CHARACTER_MENU_APPEARANCE = new OffsetStruct         (126,   256);
+        public static readonly OffsetStruct OFFSET_CHARACTER_MENU_APPEARANCE = new OffsetStruct         (136,   256);
         public static readonly OffsetStruct OFFSET_D2R_CHARACTER_MENU_APPEARANCE = new OffsetStruct     (219,   384);
 
         public static readonly OffsetStruct OFFSET_MERCENARY_IS_DEAD = new OffsetStruct                 (177,   16);
@@ -52,37 +52,12 @@ namespace D2SLib2.Structure
         
         public static readonly OffsetStruct OFFSET_NPC_MARKER = new OffsetStruct                        (713,    16);
         public static readonly OffsetStruct OFFSET_NPC_SIZE = new OffsetStruct                          (715,    16);
-        public static readonly OffsetStruct OFFSET_NPC_INTRODUCTION = new OffsetStruct                  (717,    192);
-        public static readonly OffsetStruct OFFSET_NPC_CONGRATULATION = new OffsetStruct                (741,    192);
-
-        // Add either OFFSET_NPC_INTRODUCTION or CONGRATULATION byte offset and
-        //  add 5 bytes per difficulty and then multiply by 8 for bit offset
-        public static readonly OffsetStruct OFFSET_NPC_WARRIV_ACT_II = new OffsetStruct                 (0,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_CHARSI = new OffsetStruct                        (2,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_WARRIV_ACT_I = new OffsetStruct                  (3,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_KASHYA = new OffsetStruct                        (4,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_AKARA = new OffsetStruct                         (5,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_GHEED = new OffsetStruct                         (6,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_GREIZ = new OffsetStruct                         (8,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_JERHYN = new OffsetStruct                        (9,      1, true);
-        public static readonly OffsetStruct OFFSET_NPC_MESHIF_ACT_II = new OffsetStruct                 (10,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_GEGLASH = new OffsetStruct                       (11,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_LYSNADER = new OffsetStruct                      (12,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_FARA = new OffsetStruct                          (13,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_DROGAN = new OffsetStruct                        (14,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_ALKOR = new OffsetStruct                         (16,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_HRATLI = new OffsetStruct                        (17,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_ASHERA = new OffsetStruct                        (18,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_CAIN_ACT_III = new OffsetStruct                  (21,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_ELZIX = new OffsetStruct                         (23,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_MALAH = new OffsetStruct                         (24,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_ANYA = new OffsetStruct                          (25,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_NATALYA = new OffsetStruct                       (27,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_MESHIF_ACT_III = new OffsetStruct                (28,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_ORMUS = new OffsetStruct                         (31,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_CAIN_ACT_V = new OffsetStruct                    (37,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_QUALKEHK = new OffsetStruct                      (38,     1, true);
-        public static readonly OffsetStruct OFFSET_NPC_NIHLATHAK = new OffsetStruct                     (39,     1, true);
+        public static readonly OffsetStruct OFFSET_NPC_INTRO_NORMAL = new OffsetStruct                  (717,    64);
+        public static readonly OffsetStruct OFFSET_NPC_INTRO_NIGHTMARE = new OffsetStruct               (725,    64);
+        public static readonly OffsetStruct OFFSET_NPC_INTRO_HELL = new OffsetStruct                    (733,    64);
+        public static readonly OffsetStruct OFFSET_NPC_CONGRATS_NORMAL = new OffsetStruct               (741,    64);
+        public static readonly OffsetStruct OFFSET_NPC_CONGRATS_NIGHTMARE = new OffsetStruct            (749,    64);
+        public static readonly OffsetStruct OFFSET_NPC_CONGRATS_HELL = new OffsetStruct                 (757,    64);
     }
 
     public static class QuestOffsets
@@ -105,16 +80,16 @@ namespace D2SLib2.Structure
         public static readonly OffsetStruct OFFSET_INTRODUCTION_HRATLI = new OffsetStruct               (32,    16);
         public static readonly OffsetStruct OFFSET_TRAVELED_ACT4 = new OffsetStruct                     (46,    16);
         public static readonly OffsetStruct OFFSET_INTRODUCTION_TYERAL = new OffsetStruct               (48,    16);
-        public static readonly OffsetStruct OFFSET_TRAVELED_ACT5 = new OffsetStruct                     (60,    16);
-        public static readonly OffsetStruct OFFSET_INTRODUCTION_CAIN = new OffsetStruct                 (62,    16);
-        public static readonly OffsetStruct OFFSET_AKARA_STAT_RESET = new OffsetStruct                  (78,    8);
-        public static readonly OffsetStruct OFFSET_ACT5_COMPLETED = new OffsetStruct                    (79,    8);
+        public static readonly OffsetStruct OFFSET_TRAVELED_ACT5 = new OffsetStruct                     (62,    16);
+        public static readonly OffsetStruct OFFSET_INTRODUCTION_CAIN = new OffsetStruct                 (64,    16);
+        public static readonly OffsetStruct OFFSET_AKARA_STAT_RESET = new OffsetStruct                  (82,    8);
+        public static readonly OffsetStruct OFFSET_ACT5_COMPLETED = new OffsetStruct                    (83,    8);
 
         public static readonly OffsetStruct OFFSET_ACT1 = new OffsetStruct                              (2,     96);
         public static readonly OffsetStruct OFFSET_ACT2 = new OffsetStruct                              (18,    96);
         public static readonly OffsetStruct OFFSET_ACT3 = new OffsetStruct                              (34,    96);
         public static readonly OffsetStruct OFFSET_ACT4 = new OffsetStruct                              (50,    48);
-        public static readonly OffsetStruct OFFSET_ACT5 = new OffsetStruct                              (66,    96);
+        public static readonly OffsetStruct OFFSET_ACT5 = new OffsetStruct                              (70,    96);
 
         public static readonly OffsetStruct OFFSET_QUEST1 = new OffsetStruct                            (0,     16);
         public static readonly OffsetStruct OFFSET_QUEST2 = new OffsetStruct                            (2,     16);

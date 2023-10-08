@@ -51,6 +51,11 @@ namespace D2SLib2.Structure.Player
             Logger.WriteSection(mainReader, 0, $"Skill Offset found: {skillOffsetBits / 8} | {skillOffsetBits}");
             mainReader.SetBitPosition(0);
         }
+
+        public bool WriteSkills(BitwiseBinaryWriter writer)
+        {
+            return false;
+        }
     }
 
     [DebuggerDisplay("{Id} : {Value}")]

@@ -32,5 +32,20 @@ namespace D2SLib2.Structure.Waypoints
 
             return dif;
         }
+
+        public bool WriteDifficulty(BitwiseBinaryWriter writer, int difficultyOffset)
+        {
+            if (writer.GetBytes().Length != difficultyOffset)
+                return false;
+           writer.WriteBits(Marker.ToBits());
+
+            foreach(Act a in Acts)
+            {
+                a.WriteWaypoints(writer);
+            }
+
+           writer.WriteVoidBits(17 * 8);
+            return true;
+        }
     }
 }

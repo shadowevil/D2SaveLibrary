@@ -49,5 +49,10 @@ namespace D2SLib2.Structure.Player.Item
             Logger.WriteSection(mainReader, 0, $"Inventory Offset found: {InventoryOffset / 8} | {InventoryOffset}");
             mainReader.SetBitPosition(0);
         }
+
+        public bool WriteInventory(BitwiseBinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -111,5 +111,14 @@ namespace D2SLib2.Structure.Quests
                 Flags[13] = (Bit)(value ? 1 : 0);
             }
         }
+
+        public bool Write(BitwiseBinaryWriter writer, int byteOffset)
+        {
+            if (writer.GetBytes().Length != byteOffset)
+                return false;
+
+           writer.WriteBits(Flags.ToBytes().ToBits());
+            return true;
+        }
     }
 }

@@ -40,5 +40,20 @@ namespace D2SLib2.Structure.Waypoints
 
             return book;
         }
+
+        public bool WriteWaypoints(BitwiseBinaryWriter writer)
+        {
+            if (writer.GetBytes().Length != WaypointOffsets.OFFSET_SIGNATURE.Offset)
+                return false;
+           writer.WriteBits(WaypointOffsets.OFFSET_SIGNATURE.Signature.ToBits());
+           writer.WriteBits(Version.ToBits());
+           writer.WriteBits(Size.ToBits());
+
+            Normal!.WriteDifficulty(writer, WaypointOffsets.OFFSET_NORMAL.Offset);
+            Nightmare!.WriteDifficulty(writer, WaypointOffsets.OFFSET_NIGHTMARE.Offset);
+            Hell!.WriteDifficulty(writer, WaypointOffsets.OFFSET_HELL.Offset);
+
+            return true;
+        }
     }
 }
