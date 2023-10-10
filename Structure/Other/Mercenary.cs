@@ -22,20 +22,11 @@ namespace D2SLib2.Structure.Other
         {
             Mercenary merc = new Mercenary();
 
-            mainReader.SetBytePosition(OtherOffsets.OFFSET_MERCENARY_IS_DEAD.Offset);
-            merc.Dead = mainReader.ReadBits(OtherOffsets.OFFSET_MERCENARY_IS_DEAD.BitLength).ToUInt16();
-
-            mainReader.SetBytePosition(OtherOffsets.OFFSET_MERCENARY_SEED.Offset);
-            merc.Seed = mainReader.ReadBits(OtherOffsets.OFFSET_MERCENARY_SEED.BitLength).ToUInt32();
-
-            mainReader.SetBytePosition(OtherOffsets.OFFSET_MERCENARY_NAMEID.Offset);
-            merc.NameId = mainReader.ReadBits(OtherOffsets.OFFSET_MERCENARY_NAMEID.BitLength).ToUInt16();
-
-            mainReader.SetBytePosition(OtherOffsets.OFFSET_MERCENARY_TYPE.Offset);
-            merc.MercType = mainReader.ReadBits(OtherOffsets.OFFSET_MERCENARY_TYPE.BitLength).ToUInt16();
-
-            mainReader.SetBytePosition(OtherOffsets.OFFSET_MERCENARY_EXPERIENCE.Offset);
-            merc.Experience = mainReader.ReadBits(OtherOffsets.OFFSET_MERCENARY_EXPERIENCE.BitLength).ToUInt32();
+            merc.Dead = mainReader.Read<UInt16>(OtherOffsets.OFFSET_MERCENARY_IS_DEAD);
+            merc.Seed = mainReader.Read<UInt32>(OtherOffsets.OFFSET_MERCENARY_SEED);
+            merc.NameId = mainReader.Read<UInt16>(OtherOffsets.OFFSET_MERCENARY_NAMEID);
+            merc.MercType = mainReader.Read<UInt16>(OtherOffsets.OFFSET_MERCENARY_TYPE);
+            merc.Experience = mainReader.Read<UInt32>(OtherOffsets.OFFSET_MERCENARY_EXPERIENCE);
 
             return merc;
         }
@@ -47,30 +38,30 @@ namespace D2SLib2.Structure.Other
                 if(writer.GetBytes().Length + 2 != OtherOffsets.OFFSET_MERCENARY_IS_DEAD.Offset)
                     return false;
 
-               writer.WriteBits(((ushort)0).ToBits());
+                writer.WriteVoidBits(2 * 8);
             }
 
-           writer.WriteBits(Dead.ToBits());
+            writer.WriteBits(Dead.ToBits((uint)OtherOffsets.OFFSET_MERCENARY_IS_DEAD.BitLength));
 
             if (writer.GetBytes().Length != OtherOffsets.OFFSET_MERCENARY_SEED.Offset)
                 return false;
 
-           writer.WriteBits(Seed.ToBits());
+            writer.WriteBits(Seed.ToBits((uint)OtherOffsets.OFFSET_MERCENARY_SEED.BitLength));
 
             if (writer.GetBytes().Length != OtherOffsets.OFFSET_MERCENARY_NAMEID.Offset)
                 return false;
 
-           writer.WriteBits(NameId.ToBits());
+            writer.WriteBits(NameId.ToBits((uint)OtherOffsets.OFFSET_MERCENARY_NAMEID.BitLength));
 
             if (writer.GetBytes().Length != OtherOffsets.OFFSET_MERCENARY_TYPE.Offset)
                 return false;
 
-           writer.WriteBits(MercType.ToBits());
+            writer.WriteBits(MercType.ToBits((uint)OtherOffsets.OFFSET_MERCENARY_TYPE.BitLength));
 
             if (writer.GetBytes().Length != OtherOffsets.OFFSET_MERCENARY_EXPERIENCE.Offset)
                 return false;
 
-           writer.WriteBits(Experience.ToBits());
+            writer.WriteBits(Experience.ToBits((uint)OtherOffsets.OFFSET_MERCENARY_EXPERIENCE.BitLength));
 
             return true;
         }

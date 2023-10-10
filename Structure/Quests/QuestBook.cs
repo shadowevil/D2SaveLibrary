@@ -24,15 +24,12 @@ namespace D2SLib2.Structure.Quests
             QuestBook questBook = new QuestBook();
 
             mainReader.SetBytePosition(QuestOffsets.OFFSET_SIGNATURE.Offset);
-            if (mainReader.PeekBits(QuestOffsets.OFFSET_SIGNATURE.BitLength).ToStr() != QuestOffsets.OFFSET_SIGNATURE.Signature)
+            if (mainReader.Peek<string>(QuestOffsets.OFFSET_SIGNATURE) != QuestOffsets.OFFSET_SIGNATURE.Signature)
                 throw new OffsetException("Unable to read quest signature, corrupt file?");
-            questBook.Signature = mainReader.ReadBits(QuestOffsets.OFFSET_SIGNATURE.BitLength).ToStr();
+            questBook.Signature = mainReader.ReadBits(QuestOffsets.OFFSET_SIGNATURE.BitLength).ToString((uint)QuestOffsets.OFFSET_SIGNATURE.BitLength, Endianness.BigEndian);
 
-            mainReader.SetBytePosition(QuestOffsets.OFFSET_VERSION.Offset);
-            questBook.Version = mainReader.ReadBits(QuestOffsets.OFFSET_VERSION.BitLength).ToUInt32();
-
-            mainReader.SetBytePosition(QuestOffsets.OFFSET_SIZE.Offset);
-            questBook.Size = mainReader.ReadBits(QuestOffsets.OFFSET_SIZE.BitLength).ToUInt16();
+            questBook.Version = mainReader.Read<UInt32>(QuestOffsets.OFFSET_VERSION);
+            questBook.Size = mainReader.Read<UInt16>(QuestOffsets.OFFSET_SIZE);
 
             questBook.Normal = QuestDifficulty.Read(mainReader, QuestOffsets.OFFSET_NORMAL.Offset);
             questBook.Nightmare = QuestDifficulty.Read(mainReader, QuestOffsets.OFFSET_NIGHTMARE.Offset);
@@ -54,11 +51,11 @@ namespace D2SLib2.Structure.Quests
 
             if (writer.GetBytes().Length != QuestOffsets.OFFSET_VERSION.Offset)
                 return false;
-           writer.WriteBits(Version.ToBits());
+           writer.WriteBits(Version.ToBits((uint)QuestOffsets.OFFSET_VERSION.BitLength));
 
             if (writer.GetBytes().Length != QuestOffsets.OFFSET_SIZE.Offset)
                 return false;
-           writer.WriteBits(Size.ToBits());
+           writer.WriteBits(Size.ToBits((uint)QuestOffsets.OFFSET_SIZE.BitLength));
 
             Normal!.Write(writer, QuestOffsets.OFFSET_NORMAL);
             Nightmare!.Write(writer, QuestOffsets.OFFSET_NIGHTMARE);

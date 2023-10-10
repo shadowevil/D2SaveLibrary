@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,85 +8,206 @@ using System.Threading.Tasks;
 
 namespace D2SLib2.BinaryHandler
 {
-    [DebuggerDisplay("{Value}")]
+    public enum Endianness
+    {
+        LittleEndian,
+        BigEndian
+    }
+
     public struct Bit
     {
-        private int _value;
+        public int Value { get; }
 
         public Bit(int value)
         {
-            if (value == 0 || value == 1)
+            if (value != 0 && value != 1)
             {
-                _value = value;
+                throw new ArgumentException("Bit value must be 0 or 1");
             }
-            else
-            {
-                throw new ArgumentException("Bit can only be 1 or 0.");
-            }
+            Value = value;
         }
 
         public Bit(bool value)
         {
-            _value = (value ? 1 : 0);
+            if (value == true) Value = 1; else Value = 0;
         }
 
-        public int Value
+        public static implicit operator Bit(int value)
         {
-            get { return _value; }
-            set
+            return new Bit(value);
+        }
+
+        public static bool operator ==(Bit b, int value)
+        {
+            return b.Value == value;
+        }
+
+        public static bool operator !=(Bit b, int value)
+        {
+            return b.Value != value;
+        }
+
+        public static int operator <<(Bit b, int value)
+        {
+            return b.Value << value;
+        }
+
+        public static int operator >>(Bit b, int value)
+        {
+            return b.Value >> value;
+        }
+
+        public static implicit operator Bit(bool value)
+        {
+            return new Bit(value);
+        }
+
+        public static explicit operator int(Bit b)
+        {
+            return b.Value;
+        }
+
+        public static explicit operator bool(Bit b)
+        {
+            return b.Value == 1;
+        }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null) return false;
+            if (obj is Bit bit)
             {
-                if (value == 0 || value == 1)
-                {
-                    _value = value;
-                }
-                else
-                {
-                    throw new ArgumentException("Bit can only be 1 or 0.");
-                }
+                return Value == bit.Value;
             }
+            return false;
         }
 
-        public static implicit operator bool(Bit b) => (b.Value != 0);
-
-        public int ToInt() => (int)_value;
-        public uint ToUInt() => (uint)_value;
-        public long ToLong() => (long)_value;
-        public ulong ToUlong() => (ulong)Value;
-        public short ToShort() => (short)_value;
-        public ushort ToUshort() => (ushort)Value;
-        public static explicit operator Bit(int value) => new Bit(value);
-
-        public static Bit[] ConvertByteArrayToBitArray(byte[] byteArray, bool isLittleEndian = true)
+        public override int GetHashCode()
         {
-            int totalBits = byteArray.Length * 8; // Total number of bits in the byte array
-            Bit[] bitArray = new Bit[totalBits]; // Array to hold the Bit structs
+            return Value.GetHashCode();
+        }
+    }
 
-            for (int i = 0; i < byteArray.Length; i++)
+    public static class ByteArrayExtensions
+    {
+        public static Bit[] ToBits(this byte[] bytes)
+        {
+            int totalBits = bytes.Length * 8; // Total number of bits in the byte array
+            List<Bit> bitArray = new List<Bit>(); // Array to hold the Bit structs
+
+            for (int i = 0; i < bytes.Length; i++)
             {
-                byte currentByte = byteArray[i];
+                byte currentByte = bytes[i];
                 for (int j = 0; j < 8; j++) // Loop through each bit in the byte
                 {
                     int bitPosition;
-                    if (isLittleEndian)
-                    {
-                        bitPosition = i * 8 + j; // Little-endian bit position
-                    }
-                    else
-                    {
-                        bitPosition = (byteArray.Length - i - 1) * 8 + (7 - j); // Big-endian bit position
-                    }
+                    //bitPosition = (bytes.Length - i - 1) * 8 + (7 - j); // Big-endian bit position
+                    bitPosition = i * 8 + j; // Little-endian bit position
 
                     int bitValue = (currentByte >> j) & 1; // Extract the bit value
-                    bitArray[bitPosition] = new Bit(bitValue); // Initialize the Bit struct and store it
+                    bitArray.Add(bitValue); // Initialize the Bit struct and store it
                 }
             }
 
-            return bitArray;
+            return bitArray.ToArray();
+        }
+    }
+
+    public static class BitExtensions
+    {
+        public static Bit[] ToBits(this string value, Endianness endianness = Endianness.LittleEndian)
+        {
+            List<Bit> bits = new List<Bit>();
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(value);
+            foreach (byte b in bytes)
+            {
+                bits.AddRange(b.ToBits(8, endianness));
+            }
+            return bits.ToArray();
+        }
+
+        public static Bit[] ToBits(this UInt16 value, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            return ConvertToBits(value, numBits, endianness);
+        }
+
+        public static Bit[] ToBits(this UInt32 value, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            return ConvertToBits(value, numBits, endianness);
+        }
+
+        public static Bit[] ToBits(this Int32 value, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            return ConvertToBits((UInt32)value, numBits, endianness);
+        }
+
+        public static Bit[] ToBits(this Int16 value, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            return ConvertToBits((UInt16)value, numBits, endianness);
+        }
+
+        public static Bit[] ToBits(this byte value, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            return ConvertToBits(value, numBits, endianness);
+        }
+
+        public static Bit[] ToBits(this char value, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            return ConvertToBits(value, numBits, endianness);
+        }
+
+        private static Bit[] ConvertToBits(UInt32 value, uint bitCount, Endianness endianness = Endianness.LittleEndian)
+        {
+            Bit[] bits = new Bit[bitCount];
+            for (int i = 0; i < bitCount; i++)
+            {
+                int bitIndex = (endianness == Endianness.LittleEndian) ? i : ((int)bitCount - 1 - i);
+                int bitValue = (int)((value >> i) & 1);
+                bits[bitIndex] = new Bit(bitValue);
+            }
+            return bits;
         }
     }
 
     public static class BitArrayExtensions
     {
+        public static T ToType<T>(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            if (typeof(T) == typeof(string))
+            {
+                return (T)(object)bits.ToString(numBits, endianness);
+            }
+            else if (typeof(T) == typeof(UInt16))
+            {
+                return (T)(object)bits.ToUInt16(numBits, endianness);
+            }
+            else if (typeof(T) == typeof(UInt32))
+            {
+                return (T)(object)bits.ToUInt32(numBits, endianness);
+            }
+            else if (typeof(T) == typeof(Int32))
+            {
+                return (T)(object)bits.ToInt32(numBits, endianness);
+            }
+            else if (typeof(T) == typeof(Int16))
+            {
+                return (T)(object)bits.ToInt16(numBits, endianness);
+            }
+            else if (typeof(T) == typeof(byte) && numBits <= 8)
+            {
+                return (T)(object)(byte)bits.ToUInt16(numBits, endianness);
+            }
+            else
+            {
+                throw new ArgumentException($"Unsupported type {typeof(T)}");
+            }
+        }
+
         public static Bit[] ReverseByteOrder(Bit[] bits)
         {
             Bit[] reversedBits = new Bit[bits.Length];
@@ -103,246 +223,147 @@ namespace D2SLib2.BinaryHandler
             return reversedBits;
         }
 
-
-        public static int ToInt32(this Bit[] bits, bool littleEndian = true)
+        public static byte ToByte(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
         {
-            if (bits.Length > 32)
-                throw new ArgumentException("Too many bits for UInt32.");
+            byte result = 0;
+            for(int i=0;i<bits.Length;i++)
+            {
+                result |= (byte)(bits[i] << i);
+            }
+            return result;
+        }
 
-            int result = 0;
+        public static byte[] ToBytes(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            List<Bit> _bits = bits.ToList();
+            List<byte> bytes = new List<byte>();
+            for (int i = 0; i < numBits / 8; i++)
+            {
+                List<Bit> bitA = new List<Bit>();
+                for (int x = 0; x < 8; x++)
+                {
+                    bitA.Add(_bits[x]);
+                }
+                _bits.RemoveRange(0, 8);
+                bytes.Add(bitA.ToArray().ToType<byte>(8, endianness));
+            }
+            return bytes.ToArray();
+        }
 
+        // For UInt16
+        public static UInt16 ToUInt16(this Bit[] bits, uint numBits, Endianness endianness)
+        {
+            if (numBits > 16 || numBits > bits.Length)
+            {
+                throw new ArgumentException("Invalid bit count for UInt16");
+            }
+
+            UInt16 result = 0;
             // Reverse the order of bytes (but not bits within each byte)
-            if (!littleEndian) bits = ReverseByteOrder(bits);
+            if (endianness == Endianness.LittleEndian) bits = ReverseByteOrder(bits);
 
             for (int i = 0; i < bits.Length; i++)
             {
-                result |= bits[i].ToInt() << i;
+                result |= (ushort)(bits[i] << i);
             }
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<Int32>(bits, result);
-            }
-
             return result;
         }
 
-        public static uint ToUInt32(this Bit[] bits, bool littleEndian = true)
+        // For UInt32
+        public static UInt32 ToUInt32(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
         {
-            if (bits.Length > 32)
-                throw new ArgumentException("Too many bits for UInt32.");
+            if (numBits > 32 || numBits > bits.Length)
+            {
+                throw new ArgumentException("Invalid bit count for UInt32");
+            }
 
-            uint result = 0;
-
+            UInt32 result = 0;
             // Reverse the order of bytes (but not bits within each byte)
-            if (!littleEndian) bits = ReverseByteOrder(bits);
+            if (endianness == Endianness.LittleEndian) bits = ReverseByteOrder(bits);
 
             for (int i = 0; i < bits.Length; i++)
             {
-                result |= bits[i].ToUInt() << i;
+                result |= (uint)(bits[i] << i);
             }
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<UInt32>(bits, result);
-            }
-
             return result;
         }
 
-        public static short ToInt16(this Bit[] bits, bool littleEndian = true)
+        // For Int32
+        public static Int32 ToInt32(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
         {
-            if (bits.Length > 16)
-                throw new ArgumentException("Too many bits for Int16.");
+            if (numBits > 32 || numBits > bits.Length)
+            {
+                throw new ArgumentException("Invalid bit count for Int32");
+            }
 
-            if (!littleEndian) bits = ReverseByteOrder(bits);
+            Int32 result = 0;
+            // Reverse the order of bytes (but not bits within each byte)
+            if (endianness == Endianness.LittleEndian) bits = ReverseByteOrder(bits);
 
-            short result = 0;
             for (int i = 0; i < bits.Length; i++)
             {
-                result |= (short)(bits[i].ToInt() << i);
+                result |= (int)(bits[i] << i);
             }
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<Int16>(bits, result);
-            }
-
             return result;
         }
 
-        public static ushort ToUInt16(this Bit[] bits, bool littleEndian = true)
+        public static char ToChar(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
         {
-            if (bits.Length > 16)
-                throw new ArgumentException("Too many bits for UInt16.");
+            return (char)(bits.ToUInt16(numBits, endianness));
+        }
 
-            if (!littleEndian) bits = ReverseByteOrder(bits);
+        // For Int16
+        public static Int16 ToInt16(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
+        {
+            if (numBits > 16 || numBits > bits.Length)
+            {
+                throw new ArgumentException("Invalid bit count for Int16");
+            }
 
-            ushort result = 0;
+            Int16 result = 0;
+            // Reverse the order of bytes (but not bits within each byte)
+            if (endianness == Endianness.LittleEndian) bits = ReverseByteOrder(bits);
+
             for (int i = 0; i < bits.Length; i++)
             {
-                result |= (ushort)(bits[i].ToInt() << i);
+                result |= (short)(bits[i] << i);
             }
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<UInt32>(bits, result);
-            }
-
             return result;
         }
 
-        public static long ToInt64(this Bit[] bits, bool littleEndian = true)
+        public static char[] ToCharArray(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
         {
-            if (bits.Length > 64)
-                throw new ArgumentException("Too many bits for Int64.");
-
-            if (!littleEndian) bits = ReverseByteOrder(bits);
-
-            long result = 0;
-            for (int i = 0; i < bits.Length; i++)
-            {
-                result |= (long)(bits[i].ToUlong() << i);
-            }
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<Int64>(bits, result);
-            }
-
-            return result;
+            return bits.ToString(numBits, endianness).ToCharArray();
         }
 
-        public static ulong ToUInt64(this Bit[] bits, bool littleEndian = true)
+        // For string
+        public static string ToString(this Bit[] bits, uint numBits, Endianness endianness = Endianness.LittleEndian)
         {
-            if (bits.Length > 64)
-                throw new ArgumentException("Too many bits for UInt64.");
-
-            if (!littleEndian) bits = ReverseByteOrder(bits);
-
-            ulong result = 0;
-            for (int i = 0; i < bits.Length; i++)
+            if (numBits > bits.Length)
             {
-                result |= (ulong)bits[i].ToUlong() << i;
+                throw new ArgumentException("Invalid bit count for string conversion");
             }
 
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<UInt64>(bits, result);
-            }
-
-            return result;
-        }
-
-        public static string ToStr(this Bit[] bits, bool littleEndian = true)
-        {
+            StringBuilder sb = new StringBuilder();
             byte[] byteArray = new byte[bits.Length / 8];
             for (int i = 0; i < byteArray.Length; i++)
             {
                 Bit[] byteBits = new Bit[8];
                 Array.Copy(bits, i * 8, byteBits, 0, 8);
-                byteArray[i] = (byte)byteBits.ToInt32(littleEndian);
+                sb.Append((char)byteBits.ToInt16((uint)byteBits.Length, Endianness.LittleEndian));
             }
 
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<string>(bits, Encoding.UTF8.GetString(byteArray));
-            }
+            string str = sb.ToString();
 
-            return Encoding.UTF8.GetString(byteArray);
-        }
-
-        public static byte ToByte(this Bit[] bits, bool littleEndian = true)
-        {
-            if (bits.Length > 8)
-                throw new ArgumentException("Incorrect number of bits for byte.");
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<byte>(bits, (byte)bits.ToInt16(littleEndian));
-            }
-
-            return (byte)bits.ToInt16(littleEndian);
-        }
-
-        public static byte[] ToBytes(this Bit[] bits, bool littleEndian = true)
-        {
-            if (bits.Length % 8 != 0)
-                throw new ArgumentException("Number of bits must be a multiple of 8.");
-
-            int numBytes = bits.Length / 8;
-            byte[] byteArray = new byte[numBytes];
-
-            for (int i = 0; i < numBytes; i++)
-            {
-                Bit[] byteBits = new Bit[8];
-                Array.Copy(bits, i * 8, byteBits, 0, 8);
-                byteArray[i] = byteBits.ToByte(littleEndian);
-            }
-
-            if (Debugger.IsAttached)
-            {
-                string bytes = "";
-                foreach (byte bite in byteArray)
-                {
-                    bytes += bite.ToString("X2");
-                }
-                Debugging.WriteBitPositionMessage<string>(bits, bytes);
-            }
-
-            return byteArray;
-        }
-
-        public static char ToChar(this Bit[] bits, bool littleEndian = true)
-        {
-            if (bits.Length > 8)
-                throw new ArgumentException("Incorrect number of bits for char.");
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<char>(bits, (char)bits.ToInt16(littleEndian));
-            }
-
-            return (char)bits.ToInt16(littleEndian);
-        }
-
-        public static char[] ToCharArray(this Bit[] bits, bool littleEndian = true)
-        {
-            if (bits.Length % 8 != 0)
-                throw new ArgumentException("Bit array length must be a multiple of 8 for char array conversion.");
-
-            char[] chars = new char[bits.Length / 8];
-            for (int i = 0; i < chars.Length; i++)
-            {
-                Bit[] charBits = new Bit[8];
-                Array.Copy(bits, i * 8, charBits, 0, 8);
-                chars[i] = charBits.ToChar(littleEndian);
-            }
-
-            if (Debugger.IsAttached)
-            {
-                Debugging.WriteBitPositionMessage<string>(bits, new string(chars));
-            }
-
-            return chars;
-        }
-
-        public static bool[] ConvertBitArrayToBoolArray(this Bit[] bits)
-        {
-            bool[] result = new bool[bits.Length];
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i] = Convert.ToBoolean(bits[i]);
-            }
-            return result;
+            return sb.ToString();
         }
 
         public static string ToStringRepresentation(this Bit[] bits)
         {
             string result = "";
-            foreach(Bit b in bits)
+            foreach (Bit b in bits)
             {
-                result += b.ToInt().ToString();
+                result += b.ToString();
             }
             return result;
         }

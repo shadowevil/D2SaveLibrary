@@ -13,8 +13,6 @@ namespace D2SLib2.Structure.Player
     {
         public HashSet<Attribute> attributeList = new HashSet<Attribute>();
 
-        private List<Bit> attribBits = new List<Bit>();
-
         public Attributes() { }
 
         public static Attributes Read(BitwiseBinaryReader mainReader)
@@ -22,28 +20,26 @@ namespace D2SLib2.Structure.Player
             Attributes att = new Attributes();
 
             mainReader.SetBytePosition(AttributeOffsets.OFFSET_SIGNATURE.Offset);
-            if (mainReader.ReadBits(AttributeOffsets.OFFSET_SIGNATURE.BitLength).ToStr() != AttributeOffsets.OFFSET_SIGNATURE.Signature)
+            if(mainReader.Read<string>(AttributeOffsets.OFFSET_SIGNATURE) != AttributeOffsets.OFFSET_SIGNATURE.Signature)
                 throw new OffsetException("Unable to get Attributes signature, corrupt save?");
 
             att.attributeList = new HashSet<Attribute>();
 
-            while(mainReader.PeekBits(9).ToUInt16() != 0x1FF)
+            while(mainReader.PeekBits(9).ToUInt16(9, Endianness.BigEndian) != 0x1FF)
             {
-                att.attribBits.AddRange(mainReader.PeekBits(9));
-                ushort attributeId = mainReader.ReadBits(9).ToUInt16();
-                if (attributeId == 8)
-                {
-                    bool t = true;
-                }
+                ushort attributeId = mainReader.ReadBits(9).ToUInt16(9, Endianness.BigEndian);
                 Logger.WriteSection(mainReader, 9, $"Attribute Id: {attributeId}");
                 Int32 attributeValue = Int32.MaxValue;
                 if (D2S.instance!.dbContext!.ItemStatCosts.SingleOrDefault(x => x.Id == attributeId)?.CsvBits is double csvBits)
                 {
-                    att.attribBits.AddRange(mainReader.PeekBits((int)csvBits));
-                    attributeValue = mainReader.ReadBits((int)csvBits).ToInt32();
+                    attributeValue = mainReader.ReadBits((int)csvBits).ToInt32((uint)csvBits, Endianness.BigEndian);
                     Logger.WriteSection(mainReader, (int)csvBits, $"Attribute Value: {attributeValue}");
                 }
-                else throw new Exception($"Unable to query database with attribute Id: {attributeId}");
+                else
+                {
+                    Logger.Close();
+                    throw new Exception($"Unable to query database with attribute Id: {attributeId}");
+                }
 
                 if (attributeValue == Int32.MaxValue)
                     throw new Exception("Invalid attribute value, corrupt save?");
@@ -65,8 +61,6 @@ namespace D2SLib2.Structure.Player
             return att;
         }
 
-
-        public List<Bit> attribSaveBits = new List<Bit>();
         public bool Write(BitwiseBinaryWriter writer)
         {
             if (writer.GetBytes().Length != AttributeOffsets.OFFSET_SIGNATURE.Offset)
@@ -75,8 +69,7 @@ namespace D2SLib2.Structure.Player
 
             foreach(Attribute a in attributeList)
             {
-                writer.WriteBits(a.Id.ToBits(), 9);
-                attribSaveBits.AddRange(writer.GetNumBits(a.Id.ToBits(), 9));
+                writer.WriteBits(a.Id.ToBits(9));
                 ItemStatCost? isc = D2S.instance!.dbContext?.ItemStatCosts.SingleOrDefault(x => x.Id == a.Id);
                 if (isc == null) throw new Exception($"ItemStatCost not found for attribute {a.Id}");
                 if (isc.CsvBits == null || isc.CsvBits <= 0) throw new Exception($"ItemStatCost CsvBits for {a.Id} returned null or 0");
@@ -86,11 +79,10 @@ namespace D2SLib2.Structure.Player
                 {
                     val <<= (int)isc.ValShift;
                 }
-                writer.WriteBits(((Int32)val).ToBits(), (int)isc.CsvBits);
-                attribSaveBits.AddRange(writer.GetNumBits(val.ToBits(), (int)isc.CsvBits));
+                writer.WriteBits(((Int32)val).ToBits((uint)isc.CsvBits));
             }
-            writer.WriteBits(0x1FF.ToBits(), 9);
-            while (writer.FlushCount != 0) writer.WriteVoidBits(1);
+            writer.WriteBits(0x1FF.ToBits(9));
+            writer.Align();
 
             return true;
         }

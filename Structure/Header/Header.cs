@@ -1,6 +1,7 @@
 ﻿using D2SLib2.BinaryHandler;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,22 +56,30 @@ namespace D2SLib2.Structure.Header
         {
             if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_SIGNATURE.Offset)
                 return false;
-            mainWriter.WriteBits((0xAA55AA55).ToBits());
+            mainWriter.WriteBits(UInt32.Parse(Signature, NumberStyles.HexNumber, CultureInfo.InvariantCulture).ToBits((uint)HeaderOffsets.OFFSET_SIGNATURE.BitLength, Endianness.BigEndian));
 
             if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_VERSION.Offset)
                 return false;
-            mainWriter.WriteBits(((int)Version).ToBits());
+            mainWriter.WriteBits(((int)Version).ToBits((uint)HeaderOffsets.OFFSET_VERSION.BitLength, Endianness.LittleEndian));
 
             if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_FILESIZE.Offset)
                 return false;
-            mainWriter.WriteBits(FileSize.ToBits());
+            mainWriter.WriteVoidBits(32);
 
-#warning This function needs to be moved to at the end of the writing process, to ensure that we are writing the correct new checksum
             if (mainWriter.GetBytes().Length != HeaderOffsets.OFFSET_CHECKSUM.Offset)
                 return false;
-            mainWriter.WriteBits(Checksum.ComputeChecksum(mainReader.ByteArray!).ToBits());
+            mainWriter.WriteVoidBits((uint)HeaderOffsets.OFFSET_CHECKSUM.BitLength);
 
             return true;
+        }
+
+        public static void WriteNewFileSize(ref byte[] bytes, uint size)
+        {
+            byte[] newFileSizeBytes = bytes.Length.ToBits(32).ToBytes(32);
+            for(int i= HeaderOffsets.OFFSET_FILESIZE.Offset; i<HeaderOffsets.OFFSET_FILESIZE.Offset+4; i++)
+            {
+                bytes[i] = newFileSizeBytes[i - HeaderOffsets.OFFSET_FILESIZE.Offset];
+            }
         }
     }
 }

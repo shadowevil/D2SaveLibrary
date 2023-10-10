@@ -31,52 +31,32 @@ namespace D2SLib2.Structure.Quests
             QuestDifficulty questDifficulty = new QuestDifficulty();
 
             // Act1
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_INTRODUCTION_WARRIV.Offset);
-            questDifficulty.Introduction_Warriv = mainReader.ReadBits(QuestOffsets.OFFSET_INTRODUCTION_WARRIV.BitLength).ToUInt16() >= 1;
-
+            questDifficulty.Introduction_Warriv = mainReader.Read<UInt16>(QuestOffsets.OFFSET_INTRODUCTION_WARRIV, byteOffset * 8) >= 1;
             questDifficulty.Acts.Add(Act.Read(mainReader, QuestOffsets.ACT1_QUEST_COUNT, byteOffset + QuestOffsets.OFFSET_ACT1.Offset));
 
             // Act2
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_TRAVELED_ACT2.Offset);
-            questDifficulty.Traveled_Act2 = mainReader.ReadBits(QuestOffsets.OFFSET_TRAVELED_ACT2.BitLength).ToUInt16() >= 1;
-
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_INTRODUCTION_JERHYN.Offset);
-            questDifficulty.Introduction_Jerhyn = mainReader.ReadBits(QuestOffsets.OFFSET_INTRODUCTION_JERHYN.BitLength).ToUInt16() >= 1;
-
+            questDifficulty.Traveled_Act2 = mainReader.Read<UInt16>(QuestOffsets.OFFSET_TRAVELED_ACT2, byteOffset * 8) >= 1;
+            questDifficulty.Introduction_Jerhyn = mainReader.Read<UInt16>(QuestOffsets.OFFSET_INTRODUCTION_JERHYN, byteOffset * 8) >= 1;
             questDifficulty.Acts.Add(Act.Read(mainReader, QuestOffsets.ACT2_QUEST_COUNT, byteOffset + QuestOffsets.OFFSET_ACT2.Offset));
 
             // Act3
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_TRAVELED_ACT3.Offset);
-            questDifficulty.Traveled_Act3 = mainReader.ReadBits(QuestOffsets.OFFSET_TRAVELED_ACT3.BitLength).ToUInt16() >= 1;
-
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_INTRODUCTION_HRATLI.Offset);
-            questDifficulty.Introduction_Hratli = mainReader.ReadBits(QuestOffsets.OFFSET_INTRODUCTION_HRATLI.BitLength).ToUInt16() >= 1;
-
+            questDifficulty.Traveled_Act3 = mainReader.Read<UInt16>(QuestOffsets.OFFSET_TRAVELED_ACT3, byteOffset * 8) >= 1;
+            questDifficulty.Introduction_Hratli = mainReader.Read<UInt16>(QuestOffsets.OFFSET_INTRODUCTION_HRATLI, byteOffset * 8) >= 1;
             questDifficulty.Acts.Add(Act.Read(mainReader, QuestOffsets.ACT3_QUEST_COUNT, byteOffset + QuestOffsets.OFFSET_ACT3.Offset));
 
             // Act4
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_TRAVELED_ACT4.Offset);
-            questDifficulty.Traveled_Act4 = mainReader.ReadBits(QuestOffsets.OFFSET_TRAVELED_ACT4.BitLength).ToInt16() >= 1;
-
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_INTRODUCTION_TYERAL.Offset);
-            questDifficulty.Introduction_Tyeral = mainReader.ReadBits(QuestOffsets.OFFSET_INTRODUCTION_TYERAL.BitLength).ToUInt16() >= 1;
-
+            questDifficulty.Traveled_Act4 = mainReader.Read<UInt16>(QuestOffsets.OFFSET_TRAVELED_ACT4, byteOffset * 8) >= 1;
+            questDifficulty.Introduction_Tyeral = mainReader.Read<UInt16>(QuestOffsets.OFFSET_INTRODUCTION_TYERAL, byteOffset * 8) >= 1;
             questDifficulty.Acts.Add(Act.Read(mainReader, QuestOffsets.ACT4_QUEST_COUNT, byteOffset + QuestOffsets.OFFSET_ACT4.Offset));
 
             // Act5
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_TRAVELED_ACT5.Offset);
-            questDifficulty.Traveled_Act5 = mainReader.ReadBits(QuestOffsets.OFFSET_TRAVELED_ACT5.BitLength).ToInt16() >= 1;
-
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_INTRODUCTION_CAIN.Offset);
-            questDifficulty.Introduction_Cain = mainReader.ReadBits(QuestOffsets.OFFSET_INTRODUCTION_CAIN.BitLength).ToUInt16() >= 1;
-
+            questDifficulty.Traveled_Act5 = mainReader.Read<UInt16>(QuestOffsets.OFFSET_TRAVELED_ACT5, byteOffset * 8) >= 1;
+            questDifficulty.Introduction_Cain = mainReader.Read<UInt16>(QuestOffsets.OFFSET_INTRODUCTION_CAIN, byteOffset * 8) >= 1;
             questDifficulty.Acts.Add(Act.Read(mainReader, QuestOffsets.ACT5_QUEST_COUNT, byteOffset + QuestOffsets.OFFSET_ACT5.Offset));
 
             // Extra
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_AKARA_STAT_RESET.Offset);
-            questDifficulty.Akara_Reset_Stats = mainReader.ReadBits(QuestOffsets.OFFSET_AKARA_STAT_RESET.BitLength).ToUInt16() >= 1;
-            mainReader.SetBytePosition(byteOffset + QuestOffsets.OFFSET_ACT5_COMPLETED.Offset);
-            questDifficulty.Act5_Completed = mainReader.ReadBits(QuestOffsets.OFFSET_ACT5_COMPLETED.BitLength).ToByte();
+            questDifficulty.Akara_Reset_Stats = mainReader.Read<UInt16>(QuestOffsets.OFFSET_AKARA_STAT_RESET, byteOffset * 8) >= 1;
+            questDifficulty.Act5_Completed = mainReader.Read<byte>(QuestOffsets.OFFSET_ACT5_COMPLETED, byteOffset * 8);
 
             return questDifficulty;
         }
@@ -88,40 +68,40 @@ namespace D2SLib2.Structure.Quests
 
             if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_INTRODUCTION_WARRIV.Offset)
                 return false;
-           writer.WriteBits((Convert.ToUInt16(Introduction_Warriv)).ToBits());
+            writer.WriteBits((Convert.ToUInt16(Introduction_Warriv)).ToBits((uint)QuestOffsets.OFFSET_INTRODUCTION_WARRIV.BitLength));
             Acts.ElementAt(0).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT1.Offset);
 
             if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT2.Offset)
                 return false;
-           writer.WriteBits((Convert.ToUInt16(Traveled_Act2)).ToBits());
-           writer.WriteBits((Convert.ToUInt16(Introduction_Jerhyn)).ToBits());
+            writer.WriteBits((Convert.ToUInt16(Traveled_Act2)).ToBits((uint)QuestOffsets.OFFSET_TRAVELED_ACT2.BitLength));
+            writer.WriteBits((Convert.ToUInt16(Introduction_Jerhyn)).ToBits((uint)QuestOffsets.OFFSET_INTRODUCTION_JERHYN.BitLength));
             Acts.ElementAt(1).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT2.Offset);
 
             if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT3.Offset)
                 return false;
-           writer.WriteBits((Convert.ToUInt16(Traveled_Act3)).ToBits());
-           writer.WriteBits((Convert.ToUInt16(Introduction_Hratli)).ToBits());
+            writer.WriteBits((Convert.ToUInt16(Traveled_Act3)).ToBits((uint)QuestOffsets.OFFSET_TRAVELED_ACT3.BitLength));
+            writer.WriteBits((Convert.ToUInt16(Introduction_Hratli)).ToBits((uint)QuestOffsets.OFFSET_INTRODUCTION_HRATLI.BitLength));
             Acts.ElementAt(2).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT3.Offset);
 
             if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT4.Offset)
                 return false;
-           writer.WriteBits((Convert.ToUInt16(Traveled_Act4)).ToBits());
-           writer.WriteBits((Convert.ToUInt16(Introduction_Tyeral)).ToBits());
+            writer.WriteBits((Convert.ToUInt16(Traveled_Act4)).ToBits((uint)QuestOffsets.OFFSET_TRAVELED_ACT4.BitLength));
+            writer.WriteBits((Convert.ToUInt16(Introduction_Tyeral)).ToBits((uint)QuestOffsets.OFFSET_INTRODUCTION_TYERAL.BitLength));
             Acts.ElementAt(3).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT4.Offset);
 
             if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_TRAVELED_ACT5.Offset)
                 return false;
-           writer.WriteBits((Convert.ToUInt16(Traveled_Act5)).ToBits());
-           writer.WriteBits((Convert.ToUInt16(Introduction_Cain)).ToBits());
-           writer.WriteVoidBits(32);
+            writer.WriteBits((Convert.ToUInt16(Traveled_Act5)).ToBits((uint)QuestOffsets.OFFSET_TRAVELED_ACT5.BitLength));
+            writer.WriteBits((Convert.ToUInt16(Introduction_Cain)).ToBits((uint)QuestOffsets.OFFSET_INTRODUCTION_CAIN.BitLength));
+            writer.WriteVoidBits(32);
             Acts.ElementAt(4).Write(writer, difficultyOffset.Offset + QuestOffsets.OFFSET_ACT5.Offset);
 
             if (writer.GetBytes().Length != difficultyOffset.Offset + QuestOffsets.OFFSET_AKARA_STAT_RESET.Offset)
                 return false;
-           writer.WriteBits((Convert.ToUInt16(Akara_Reset_Stats)).ToBits());
-           writer.WriteBits((Convert.ToUInt16(Act5_Completed)).ToBits());
+            writer.WriteBits((Convert.ToUInt16(Akara_Reset_Stats)).ToBits((uint)QuestOffsets.OFFSET_AKARA_STAT_RESET.BitLength));
+            writer.WriteBits((Convert.ToUInt16(Act5_Completed)).ToBits((uint)QuestOffsets.OFFSET_ACT5_COMPLETED.BitLength));
 
-           writer.WriteVoidBits(10 * 8);
+            writer.WriteVoidBits(12 * 8);
 
             return true;
         }

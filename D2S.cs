@@ -106,9 +106,9 @@ namespace D2SLib2
             Logger.Close();
         }
 
-        public void WriteD2S()
+        public byte[]? WriteD2S()
         {
-            if (d2sReader == null) return;
+            if (d2sReader == null) return null;
             BitwiseBinaryWriter writer = new BitwiseBinaryWriter();
 
             fileHeader!                     .Write(writer, d2sReader);
@@ -131,13 +131,21 @@ namespace D2SLib2
             waypointBook!                   .WriteWaypoints(writer);
             NPC!                            .Write(writer);
             playerInformation.attributes!   .Write(writer);
+            playerInformation.skillsClass!  .WriteSkills(writer);
             
             // TODO:
-            playerInformation.skillsClass!  .WriteSkills(writer);
             playerInformation.inventory!    .WriteInventory(writer);
-            playerInformation               .WriteCorpseInformation(writer);
-            playerInformation               .WriteMercenaryInventoryInformation(writer);
-            playerInformation               .WriteIronGolemInformation(writer);
+            playerInformation!              .WriteCorpseInformation(writer);
+            playerInformation!              .WriteMercenaryInventoryInformation(writer);
+            playerInformation!              .WriteIronGolemInformation(writer);
+
+            byte[] bytes = writer.GetBytes();
+            Header.WriteNewFileSize(ref bytes, (uint)bytes.Length);
+
+            byte[] checksumBytes = Checksum.ComputeChecksum(bytes);
+            Checksum.WriteChecksumBytes(ref bytes, checksumBytes);
+
+            return bytes;
         }
 
         public static void ConvertD2SToJson(D2S d2sInstance)

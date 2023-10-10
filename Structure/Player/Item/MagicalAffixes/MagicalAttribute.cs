@@ -2,11 +2,14 @@
 using D2SLib2.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Formats.Asn1;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace D2SLib2.Structure.Player.Item.MagicalAffixes
 {
@@ -15,6 +18,25 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
         public HashSet<MagicalAttribute> MagicalList = new HashSet<MagicalAttribute>();
 
         public MagicalAttributes() { }
+
+        public static string[] filters = new string[]
+        {
+            "res-all",
+            "res-all-max",
+            "dmg-fire",
+            "dmg-ltng",
+            "dmg-mag",
+            "dmg-cold",
+            "dmg-pois",
+            "dmg-throw",
+            "dmg-norm",
+            "dmg-elem",
+            "dmg-elem-min",
+            "dmg-elem-max",
+            "all-stats",
+            "swing2",
+            "swing3"
+        };
 
         public static MagicalAttributes? Read(BitwiseBinaryReader mainReader)
         {
@@ -30,22 +52,16 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                     throw new Exception($"Invalid stat Id: {Id} at position {mainReader.bitPosition - 9}");
                 }
 
-                ItemStatCost? statcost = D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id);
-                if (statcost == null)
+                ItemStatCost statcost = D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id) ??
                     throw new Exception($"Stat Id {Id} not found in ItemStatCost");
 
                 IQueryable<Property>? properties = D2S.instance?.dbContext?.Properties?.Where(x => x.Stat1 == statcost.Stat
-                                                                                                && x.Code != "all-stats"
-                                                                                                && x.Code != "res-all"
-                                                                                                && x.Code != "res-all-max"
-                                                                                                && x.Code != "dmg-elem"
-                                                                                                && x.Code != "dmg-elem-min"
-                                                                                                && x.Code != "dmg-elem-max");
+                                                                                                && !filters.Contains(x.Code));
                 
                 if (properties == null)
                     throw new Exception($"Property not found for {Id} in the Properties datastore");
 
-                List<ItemStatCost?> ItemStatCostSet = new List<ItemStatCost?>()
+                List<ItemStatCost> ItemStatCostSet = new List<ItemStatCost>()
                 {
                     statcost
                 };
@@ -79,18 +95,42 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                         {
                             stats.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Stat == item.Stat7));
                         }
-                        ItemStatCostSet.AddRange(stats);
+                        if(stats != null) if(stats.Count() > 0) ItemStatCostSet.AddRange(stats!);
                     }
                 }
 
-                switch(Id)
+                /*
+                0	    strength
+                21	    mindamage
+                39	    fireresist
+                40	    maxfireresist
+                48	    firemindam
+                49	    firemaxdam
+                50	    lightmindam
+                52	    magicmindam
+                54	    coldmindam
+                57	    poisonmindam
+                159	    item_throw_mindamage
+                */
+
+                switch (Id)
                 {
                     case 17:
-                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == 18));
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == 18)!);
                         break;
                     case 159:
                     case 21:
                         ItemStatCostSet.RemoveAt(ItemStatCostSet.Count - 1);
+                        break;
+                    case 54:
+                    case 57:
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id + 1)!);
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id + 2)!);
+                        break;
+                    case 48:
+                    case 50:
+                    case 52:
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id + 1)!);
                         break;
                 }
 
@@ -103,6 +143,53 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
             }
 
             return attributes;
+        }
+
+        public bool Write(BitwiseBinaryWriter writer)
+        {
+            for(int i=0;i<MagicalList.Count;)
+            {
+                ItemStatCost? isc = D2S.instance!.dbContext!.ItemStatCosts.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id);
+                writer.WriteBits(MagicalList.ElementAt(i).Id.ToBits((uint)InventoryOffsets.OFFSET_MAGICAL_ATTRIABUTE_ID.BitLength));
+
+                IQueryable<Property>? properties = D2S.instance?.dbContext?.Properties?.Where(x => x.Stat1 == isc!.Stat && !filters.Contains(x.Code));
+                if (properties == null)
+                    throw new Exception($"Property not found for {MagicalList.ElementAt(i).Id} in the Properties datastore");
+
+                List<ItemStatCost> ItemStatCostSet = new List<ItemStatCost>()
+                {
+                    isc
+                };
+
+                switch (MagicalList.ElementAt(i).Id)
+                {
+                    case 17:
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == 18)!);
+                        break;
+                    case 159:
+                    case 21:
+                        ItemStatCostSet.RemoveAt(ItemStatCostSet.Count - 1);
+                        break;
+                    case 54:
+                    case 57:
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id + 1)!);
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id + 2)!);
+                        break;
+                    case 48:
+                    case 50:
+                    case 52:
+                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id + 1)!);
+                        break;
+                }
+
+                foreach (var item in ItemStatCostSet)
+                {
+                    MagicalList.ElementAt(i).Write(writer, item);
+                    i++;
+                }
+            }
+            writer.WriteBits(0x1ff.ToBits((uint)InventoryOffsets.OFFSET_MAGICAL_ATTRIABUTE_ID.BitLength));
+            return true;
         }
     }
 
@@ -133,6 +220,8 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                 switch (property.Descfunc)
                 {
                     case 14: // +skill to skilltab
+                        attrib.SkillTab = param & 0x7;
+                        attrib.SkillLevel = (param >> 3) & 0x1fff;
                         break;
                 }
 
@@ -157,35 +246,85 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
             if(property.SaveBits != null)
             {
                 uint value = 0;
-                if (attrib.Id == 288 || attrib.Id == 268 || attrib.Id == 269)
-                {
-                    value = mainReader.ReadItemBits<UInt32>(new ItemOffsetStruct(-1, (int)property.SaveBits!));
-                    Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value: {value}");
-                }
-                else
-                {
-                    value = mainReader.ReadItemBits<UInt16>(new ItemOffsetStruct(-1, (int)property.SaveBits!));
-                    Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value: {value}");
-                }
+                value = mainReader.ReadItemBits<uint>(new ItemOffsetStruct(-1, (int)property.SaveBits!));
+                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value: {value}");
                 if(property.SaveAdd != null && property.SaveAdd != 0)
                 {
                     value -= (uint)property.SaveAdd;
                 }
 
-                switch (property.Encode)
+                if (property.Encode != null)
                 {
-                    case 3:
-                        attrib.CurrentCharges = (int)(value & 255);
-                        attrib.MaxCharges = (int)(value >> 8) & 255;
-                        break;
-                    default:
-                        attrib.Value = value;
-                        break;
+                    switch (property.Encode)
+                    {
+                        case 2:
+                        case 3:
+                            attrib.CurrentCharges = (int)(value & 255);
+                            attrib.MaxCharges = (int)(value >> 8) & 255;
+                            break;
+                    }
                 }
+                attrib.Value = value;
                 Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value-sA-encode: {value}");
             }
 
             return attrib;
+        }
+
+        public bool Write(BitwiseBinaryWriter writer, ItemStatCost? property)
+        {
+            if (property!.SaveParamBits != null)
+            {
+                if (Param != null)
+                {
+                    writer.WriteBits(((int)Param).ToBits((uint)(property.SaveParamBits ?? 0)));
+                }
+                else
+                {
+                    int ParamBits = 0;
+                    if (property.Encode != null)
+                    {
+                        switch (property.Descfunc)
+                        {
+                            case 14: // +skill to skilltab
+                                ParamBits |= (SkillTab ?? 0) & 0x7;
+                                ParamBits |= ((SkillLevel ?? 0) & 0x1fff) << 3;
+                                break;
+                        }
+
+                        switch (property.Encode)
+                        {
+                            case 1:
+                            case 2: // Chance to cast
+                            case 3: // Charges
+                                ParamBits |= ((SkillLevel ?? 0) & 63);
+                                ParamBits |= ((SkillId ?? 0) & 1023) << 6;
+                                break;
+                            default:
+                                break;
+                        }
+                        if (Param != null) ParamBits = (int)Param;
+                        writer.WriteBits(ParamBits.ToBits((uint)(property.SaveParamBits ?? 0)));
+                    }
+                }
+            }
+            if (property.SaveBits != null)
+            {
+                uint ParamValue = (UInt32)Value + (UInt32)(property.SaveAdd ?? 0);
+
+                if (property.Encode != null)
+                {
+                    switch (property.Encode)
+                    {
+                        case 2:
+                        case 3:
+                            ParamValue |= (uint)(((MaxCharges ?? 0) & 0xff) << 8);
+                            break;
+                    }
+                }
+                writer.WriteBits(((uint)ParamValue).ToBits((uint)(property.SaveBits ?? 0)));
+            }
+            return true;
         }
     }
 }

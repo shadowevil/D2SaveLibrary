@@ -23,14 +23,14 @@ namespace D2SLib2.BinaryHandler
         public BitwiseBinaryReader(string filename)
         {
             ByteArray = File.ReadAllBytes(filename);
-            BitArray = Bit.ConvertByteArrayToBitArray(ByteArray);
+            BitArray = ByteArray.ToBits().ToArray();
             instance = this;
         }
 
         public BitwiseBinaryReader(Bit[] bitArray)
         {
             BitArray = bitArray;
-            ByteArray = bitArray.ToBytes();
+            ByteArray = bitArray.ToBytes((uint)bitArray.Length, Endianness.BigEndian);
             subinstance = this;
         }
 
@@ -93,46 +93,46 @@ namespace D2SLib2.BinaryHandler
             return result;
         }
 
-        public T? Read<T>(ItemOffsetStruct iStruct, int offset = 0, bool littleEndian = true)
+        public T? ReadItemBits<T>(ItemOffsetStruct iStruct, int offset = 0, Endianness endianness = Endianness.BigEndian)
         {
-            return Read<T>(iStruct.BitOffset + Inventory.InventoryOffset + offset, iStruct.BitLength, littleEndian);
+            return Read<T>(iStruct.BitOffset + Inventory.InventoryOffset + offset, iStruct.BitLength, endianness, true);
         }
 
-        public T? ReadItemBits<T>(ItemOffsetStruct iStruct, int offset = 0, bool littleEndian = true)
+        public T? PeekItemBits<T>(ItemOffsetStruct iStruct, int offset = 0, Endianness endianness = Endianness.BigEndian)
         {
-            return Read<T>(iStruct.BitOffset + Inventory.InventoryOffset + offset, iStruct.BitLength, littleEndian, true);
+            return Peek<T>(iStruct.BitOffset + Inventory.InventoryOffset + offset, iStruct.BitLength, endianness);
         }
 
-        public T? PeekItemBits<T>(ItemOffsetStruct iStruct, int offset = 0, bool littleEndian = true)
+        public T? Peek<T>(OffsetStruct oStruct, int offset = 0, Endianness endianness = Endianness.BigEndian)
         {
-            return Peek<T>(iStruct.BitOffset + Inventory.InventoryOffset + offset, iStruct.BitLength, littleEndian);
+            return Peek<T>(oStruct.BitOffset + Inventory.InventoryOffset + offset, oStruct.BitLength, endianness);
         }
 
-        public T? Read<T>(OffsetStruct oStruct, int bitOffset = 0, bool littleEndian = true)
+        public T? Read<T>(OffsetStruct oStruct, int bitOffset = 0, Endianness endianness = Endianness.BigEndian)
         {
             if (!oStruct.isUsingBitOffset)
             {
-                return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, littleEndian);
+                return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, endianness);
             } else
             {
-                return Read<T>(oStruct.BitOffset + bitOffset, oStruct.BitLength, littleEndian);
+                return Read<T>(oStruct.BitOffset + bitOffset, oStruct.BitLength, endianness);
             }
         }
 
-        public T? ReadSkipPositioning<T>(OffsetStruct oStruct, int bitOffset = 0, bool littleEndian = true)
+        public T? ReadSkipPositioning<T>(OffsetStruct oStruct, int bitOffset = 0, Endianness endianness = Endianness.BigEndian)
         {
             if (!oStruct.isUsingBitOffset)
             {
-                return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, littleEndian, true);
+                return Read<T>((oStruct.Offset * 8) + bitOffset, oStruct.BitLength, endianness, true);
             }
             else
             {
-                return Read<T>(oStruct.BitOffset + bitOffset, oStruct.BitLength, littleEndian, true);
+                return Read<T>(oStruct.BitOffset + bitOffset, oStruct.BitLength, endianness, true);
             }
         }
 
 
-        private T? Peek<T>(int offset, int bitLength, bool littleEndian)
+        private T? Peek<T>(int offset, int bitLength, Endianness endianness)
         {
             if (bitLength <= 0) return default;
 
@@ -143,33 +143,30 @@ namespace D2SLib2.BinaryHandler
                 return (T)(object)PeekBits(bitLength);
 
             if (typeof(T) == typeof(byte) && bitLength <= 8)
-                return (T)(object)PeekBits(bitLength).ToByte(littleEndian);
+                return (T)(object)(byte)PeekBits(bitLength).ToUInt16((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(byte[]) && bitLength % 8 == 0)
-                return (T)(object)PeekBits(bitLength).ToBytes(littleEndian);
+                return (T)(object)PeekBits(bitLength).ToBytes((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(char) && bitLength <= 8)
-                return (T)(object)PeekBits(bitLength).ToChar(littleEndian);
+                return (T)(object)PeekBits(bitLength).ToChar((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(char[]) && bitLength > 8 && bitLength % 8 == 0)
-                return (T)(object)PeekBits(bitLength).ToCharArray(littleEndian);
+                return (T)(object)PeekBits(bitLength).ToCharArray((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(string) && bitLength % 8 == 0)
-                return (T)(object)PeekBits(bitLength).ToStr(littleEndian);
+                return (T)(object)PeekBits(bitLength).ToString((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(UInt16) && bitLength <= 16)
-                return (T)(object)PeekBits(bitLength).ToUInt16(littleEndian);
+                return (T)(object)PeekBits(bitLength).ToUInt16((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(UInt32) && bitLength <= 32)
-                return (T)(object)PeekBits(bitLength).ToUInt32(littleEndian);
-
-            if (typeof(T) == typeof(UInt64) && bitLength <= 64)
-                return (T)(object)PeekBits(bitLength).ToUInt64(littleEndian);
+                return (T)(object)PeekBits(bitLength).ToUInt32((uint)bitLength, endianness);
 
             return default;
         }
 
-        private T? Read<T>(int bitOffset, int bitLength, bool littleEndian, bool skipBitPositioning = false)
+        private T? Read<T>(int bitOffset, int bitLength, Endianness endianness, bool skipBitPositioning = false)
         {
             int prevBitPosition = bitPosition;
             if (!skipBitPositioning)
@@ -186,28 +183,25 @@ namespace D2SLib2.BinaryHandler
                 return (T)(object)ReadBits(bitLength);
 
             if (typeof(T) == typeof(byte) && bitLength <= 8)
-                return (T)(object)ReadBits(bitLength).ToByte(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToByte((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(byte[]) && bitLength % 8 == 0)
-                return (T)(object)ReadBits(bitLength).ToBytes(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToBytes((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(char) && bitLength <= 8)
-                return (T)(object)ReadBits(bitLength).ToChar(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToChar((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(char[]) && bitLength > 8 && bitLength % 8 == 0)
-                return (T)(object)ReadBits(bitLength).ToCharArray(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToCharArray((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(string) && bitLength % 8 == 0)
-                return (T)(object)ReadBits(bitLength).ToStr(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToString((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(UInt16) && bitLength <= 16)
-                return (T)(object)ReadBits(bitLength).ToUInt16(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToUInt16((uint)bitLength, endianness);
 
             if (typeof(T) == typeof(UInt32) && bitLength <= 32)
-                return (T)(object)ReadBits(bitLength).ToUInt32(littleEndian);
-
-            if (typeof(T) == typeof(UInt64) && bitLength <= 64)
-                return (T)(object)ReadBits(bitLength).ToUInt64(littleEndian);
+                return (T)(object)ReadBits(bitLength).ToUInt32((uint)bitLength, endianness);
 
             if (!skipBitPositioning)
             {

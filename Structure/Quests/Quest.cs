@@ -16,108 +16,21 @@ namespace D2SLib2.Structure.Quests
             Flags = flags;
         }
 
-        public bool Completed
-        {
-            get
-            {
-                return Flags[0];
-            }
-            set
-            {
-                Flags[0] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool RequirementsMet
-        {
-            get
-            {
-                return Flags[1];
-            }
-            set
-            {
-                Flags[1] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool Given
-        {
-            get
-            {
-                return Flags[2];
-            }
-            set
-            {
-                Flags[2] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool DrankPotionOfLifeAct3
-        {
-            get
-            {
-                return Flags[6];
-            }
-            set
-            {
-                Flags[6] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool ReadScrollOfResistanceAct5
-        {
-            get
-            {
-                return Flags[8];
-            }
-            set
-            {
-                Flags[8] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool SecretCowLevelCompleteAct1
-        {
-            get
-            {
-                return Flags[11];
-            }
-            set
-            {
-                Flags[11] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool Closed
-        {
-            get
-            {
-                return Flags[12];
-            }
-            set
-            {
-                Flags[12] = (Bit)(value ? 1 : 0);
-            }
-        }
-
-        public bool CompletedInCurrentGame
-        {
-            get
-            {
-                return Flags[13];
-            }
-            set
-            {
-                Flags[13] = (Bit)(value ? 1 : 0);
-            }
-        }
+        public bool Completed {                  get { return (bool)Flags[0]; }  set { Flags[0] = value; } }
+        public bool RequirementsMet {            get { return (bool)Flags[1]; }  set { Flags[1] = value; } }
+        public bool Given {                      get { return (bool)Flags[2]; }  set { Flags[2] = value; } }
+        public bool DrankPotionOfLifeAct3 {      get { return (bool)Flags[6]; }  set { Flags[6] = value; } }
+        public bool ReadScrollOfResistanceAct5 { get { return (bool)Flags[8]; }  set { Flags[8] = value; } }
+        public bool SecretCowLevelCompleteAct1 { get { return (bool)Flags[11]; } set { Flags[11] = value; } }
+        public bool Closed {                     get { return (bool)Flags[12]; } set { Flags[12] = value; } }
+        public bool CompletedInCurrentGame {     get { return (bool)Flags[13]; } set { Flags[13] = value; } }
 
         public bool Write(BitwiseBinaryWriter writer, int byteOffset)
         {
             if (writer.GetBytes().Length != byteOffset)
                 return false;
 
-           writer.WriteBits(Flags.ToBytes().ToBits());
+            writer.WriteBits(Flags!);
             return true;
         }
     }

@@ -19,9 +19,8 @@ namespace D2SLib2.Structure.Waypoints
         {
             WaypointDifficulty dif = new WaypointDifficulty();
 
-            mainReader.SetBytePosition(byteOffset.Offset);
-            byte[] marker = mainReader.ReadBits(byteOffset.BitLength).ToBytes();
-            if (marker[0] != dif.Marker[0] && marker[1] != dif.Marker[1])
+            byte[]? marker = mainReader.Read<byte[]>(byteOffset);
+            if (marker![0] != dif.Marker[0] && marker![1] != dif.Marker[1])
                 throw new OffsetException("Error reading waypoint difficulty marker, corrupt save?");
 
             dif.Acts.Add(Act.Read(mainReader, WaypointOffsets.ACT1_WAYPOINT_COUNT, byteOffset.Offset + WaypointOffsets.OFFSET_ACT1.Offset));

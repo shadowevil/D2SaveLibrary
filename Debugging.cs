@@ -22,7 +22,7 @@ namespace D2SLib2
             string str = "";
             foreach (Bit bit in bits)
             {
-                str += bit.ToInt().ToString();
+                str += bit.ToString();
             }
 
             if (str.Length > 40) str = str.Substring(0, 40) + "...";

@@ -40,7 +40,7 @@ namespace D2SLib2.Structure.Other
                 if (writer.GetBytes().Length + 28 != OtherOffsets.OFFSET_D2R_CHARACTER_MENU_APPEARANCE.Offset)
                     return false;
 
-                for(int i=0;i<28;i++)writer.WriteBits(((byte)0).ToBits());
+                writer.WriteVoidBits(28 * 8);
             }
 
            writer.WriteBits(menuAppearanceD2R.ToBits());

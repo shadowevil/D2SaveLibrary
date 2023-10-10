@@ -3,6 +3,7 @@ using D2SLib2.Model;
 using D2SLib2.Structure.Player.Item.MagicalAffixes;
 using System.Diagnostics;
 using System.Drawing;
+using System.Formats.Asn1;
 using System.Text.Json.Serialization;
 
 namespace D2SLib2.Structure.Player.Item
@@ -94,9 +95,9 @@ namespace D2SLib2.Structure.Player.Item
 
             if (Ear)
             {
-                EarFileIndex = mainReader.ReadItemBits<byte>(new ItemOffsetStruct(-1, 3));
+                EarFileIndex = mainReader.ReadItemBits<byte>(InventoryOffsets.OFFSET_EAR_FILE_INDEX);
                 Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, 3).BitLength, $"Ear File Index: {EarFileIndex}");
-                EarLevel = mainReader.ReadItemBits<byte>(new ItemOffsetStruct(-1, 7));
+                EarLevel = mainReader.ReadItemBits<byte>(InventoryOffsets.OFFSET_EAR_LEVEL);
                 Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, 7).BitLength, $"Ear Level: {EarLevel}");
                 PersonalizedName = ReadPersonalizedName(mainReader);
             } else
@@ -140,14 +141,14 @@ namespace D2SLib2.Structure.Player.Item
         }
 
         private Bit[] BasicItemFlags = new Bit[32];
-        public bool Identified { get { return BasicItemFlags[4]; } set { BasicItemFlags[4] = (Bit)(value ? 1 : 0); } }
-        public bool Socketed { get { return BasicItemFlags[11]; } set { BasicItemFlags[11] = (Bit)(value ? 1 : 0); } }
-        public bool Ear { get { return BasicItemFlags[16]; } set { BasicItemFlags[16] = (Bit)(value ? 1 : 0); } }
-        public bool SimpleItem { get { return BasicItemFlags[21]; } set { BasicItemFlags[21] = (Bit)(value ? 1 : 0); } }
-        public bool Ethereal { get { return BasicItemFlags[22]; } set { BasicItemFlags[22] = (Bit)(value ? 1 : 0); } }
-        public bool Personalized { get { return BasicItemFlags[24]; } set { BasicItemFlags[24] = (Bit)(value ? 1 : 0); } }
-        public bool Runeword { get { return BasicItemFlags[26]; } set { BasicItemFlags[26] = (Bit)(value ? 1 : 0); } }
-        public bool Stackable { get; set; } = false;
+        public bool Identified          { get { return (bool)BasicItemFlags[4]; }     set { BasicItemFlags[4] =  value; } }
+        public bool Socketed            { get { return (bool)BasicItemFlags[11]; }    set { BasicItemFlags[11] = value; } }
+        public bool Ear                 { get { return (bool)BasicItemFlags[16]; }    set { BasicItemFlags[16] = value; } }
+        public bool SimpleItem          { get { return (bool)BasicItemFlags[21]; }    set { BasicItemFlags[21] = value; } }
+        public bool Ethereal            { get { return (bool)BasicItemFlags[22]; }    set { BasicItemFlags[22] = value; } }
+        public bool Personalized        { get { return (bool)BasicItemFlags[24]; }    set { BasicItemFlags[24] = value; } }
+        public bool Runeword            { get { return (bool)BasicItemFlags[26]; }    set { BasicItemFlags[26] = value; } }
+        public bool Stackable           { get; set; } = false;
 
         public UInt16 QuestDifficulty { get; set; } = 0;
 
@@ -180,13 +181,17 @@ namespace D2SLib2.Structure.Player.Item
 
         public UInt16[] MagicPrefixId { get; set; } = new UInt16[3];
         public UInt16[] MagicSuffixId { get; set; } = new UInt16[3];
+
         public UInt16 RarePrefixId { get; set; } = 0;
         public UInt16 RareSuffixId { get; set; } = 0;
+        
         public UInt16 CraftPrefixId { get; set; } = 0;
         public UInt16 CraftSuffixId { get; set; } = 0;
+
         public byte SetItemMask { get; set; } = 0;
 
         public UInt32 RunewordId { get; set; } = 0;
+        public UInt16 RunewordProperty { get; set; } = 0;
         public UInt16 propertyList { get; set; } = 0;
 
         public bool AutoAffix { get; set; } = false;
@@ -222,7 +227,7 @@ namespace D2SLib2.Structure.Player.Item
             Quality = (ItemQuality)mainReader.ReadItemBits<byte>(InventoryOffsets.OFFSET_QUALITY);
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_QUALITY.BitLength, $"Quality: {Quality}");
 
-            MultipleGraphics = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_HAS_MULTIPLE_GRAPHICS);
+            MultipleGraphics = (bool)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_HAS_MULTIPLE_GRAPHICS);
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_HAS_MULTIPLE_GRAPHICS.BitLength, $"Multiple Graphics Bool: {MultipleGraphics}");
             if (MultipleGraphics)
             {
@@ -230,7 +235,7 @@ namespace D2SLib2.Structure.Player.Item
                 Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_MULTIPLE_GRAPHICS.BitLength, $"Multiple Graphics Id: {GraphicId}");
             }
 
-            AutoAffix = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_HAS_AUTO_AFFIX);
+            AutoAffix = (bool)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_HAS_AUTO_AFFIX);
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_HAS_AUTO_AFFIX.BitLength, $"Auto Affix Bool: {AutoAffix}");
             if (AutoAffix)
             {
@@ -262,17 +267,16 @@ namespace D2SLib2.Structure.Player.Item
                     Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_SUFFIX_ID.BitLength, $"Rare Suffix Id: {RareSuffixId}");
                     for (int i = 0; i < 3; i++)
                     {
-                        bool isPrefixAvailable = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_RARE_PREFIX_VALUE_BOOL);
-                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_PREFIX_VALUE_BOOL.BitLength, $"Rare Prefix Bool: {isPrefixAvailable}");
-                        if (isPrefixAvailable)
+                        bool isRarePrefixAvailable = ((int)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_RARE_PREFIX_VALUE_BOOL) >= 1);
+                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_PREFIX_VALUE_BOOL.BitLength, $"Rare Prefix Bool: {isRarePrefixAvailable}");
+                        if (isRarePrefixAvailable)
                         {
                             MagicPrefixId[i] = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_RARE_PREFIX_VALUE);
                             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_PREFIX_VALUE.BitLength, $"Rare Magic Prefix Value [{i}]: {MagicPrefixId[i]}");
                         }
-
-                        bool isSuffixAvailable = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE_BOOL);
-                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE_BOOL.BitLength, $"Rare Suffix Bool: {isSuffixAvailable}");
-                        if (isSuffixAvailable)
+                        bool isRareSuffixAvailable = ((int)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE_BOOL) >= 1);
+                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE_BOOL.BitLength, $"Rare Suffix Bool: {isRareSuffixAvailable}");
+                        if (isRareSuffixAvailable)
                         {
                             MagicSuffixId[i] = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE);
                             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE.BitLength, $"Rare Magic Suffix Value [{i}]: {MagicSuffixId[i]}");
@@ -286,17 +290,16 @@ namespace D2SLib2.Structure.Player.Item
                     Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_SUFFIX_ID.BitLength, $"Craft Suffix Id: {CraftSuffixId}");
                     for (int i=0;i<3;i++)
                     {
-                        bool isPrefixAvailable = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL);
-                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL.BitLength, $"Craft Prefix Bool: {isPrefixAvailable}");
-                        if (isPrefixAvailable)
+                        bool isCraftPrefixAvailable = ((int)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL)) >= 1;
+                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL.BitLength, $"Craft Prefix Bool: {isCraftPrefixAvailable}");
+                        if (isCraftPrefixAvailable)
                         {
                             MagicPrefixId[i] = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE);
                             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE.BitLength, $"Craft Magic Prefix Value [{i}]: {MagicPrefixId[i]}");
                         }
-
-                        bool isSuffixAvailable = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL);
-                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL.BitLength, $"Craft Suffix Bool: {isSuffixAvailable}");
-                        if (isSuffixAvailable)
+                        bool isCraftSuffixAvailable = ((int)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL)) >= 1;
+                        Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE_BOOL.BitLength, $"Craft Suffix Bool: {isCraftSuffixAvailable}");
+                        if (isCraftSuffixAvailable)
                         {
                             MagicSuffixId[i] = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_CRAFT_SUFFIX_VALUE);
                             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_CRAFT_SUFFIX_VALUE.BitLength, $"Craft Magic Suffix Value [{i}]: {MagicSuffixId[i]}");
@@ -322,7 +325,7 @@ namespace D2SLib2.Structure.Player.Item
                 else tmpRuneId -= 25;
                 //Runeword = Core.SqlContext.Runes.Single(x => x.Name!.Substring(8) == tmpRuneId.ToString())?.RuneName!;
                 if (RunewordId == 2718) RunewordId = 48;
-                UInt16 RunewordProperty = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_RUNEWORD_PROPERTY);
+                RunewordProperty = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_RUNEWORD_PROPERTY);
                 propertyList |= (UInt16)(1 << (RunewordProperty + 1));
                 Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_RUNEWORD_PROPERTY.BitLength, $"Runeword Property: (1 << ({RunewordProperty} + 1) | [{propertyList}])");
             }
@@ -342,7 +345,7 @@ namespace D2SLib2.Structure.Player.Item
                 Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_IDENTIFY_BOOK.BitLength, $"Identification Book Spell Id: {MagicSuffixId[0]}");
             }
 
-            RealmDataExists = mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_REALM_DATA_BOOL);
+            RealmDataExists = (bool)mainReader.ReadItemBits<Bit>(InventoryOffsets.OFFSET_REALM_DATA_BOOL);
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_REALM_DATA_BOOL.BitLength, $"Realm Data: {RealmDataExists}");
             if (RealmDataExists)
             {
@@ -466,6 +469,19 @@ namespace D2SLib2.Structure.Player.Item
             return result;
         }
 
+        private bool WriteItemCode(BitwiseBinaryWriter writer)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                foreach (bool bit in D2S.instance!.itemCodeTree.EncodeChar((char)Code[i]))
+                {
+                    writer.WriteBit(new Bit(bit));
+                }
+            }
+
+            return true;
+        }
+
         private string ReadPersonalizedName(BitwiseBinaryReader mainReader)
         {
             string result = string.Empty;
@@ -473,17 +489,9 @@ namespace D2SLib2.Structure.Player.Item
                 ?? throw new InvalidItemException("Unable to read bits for personalized name."));
             for (int i = 0; i < 16; i++)
             {
-                if (D2S.instance!.fileHeader!.Version > D2SLib2.Structure.Header.FileVersion.D2R_V10x_To_11x)
-                {
-                    if (personalizedReader.PeekItemBits<char>(InventoryOffsets.OFFSET_PERSONALIZED_CHAR) == '\0')
-                        break;
-                    result += personalizedReader.ReadItemBits<char>(InventoryOffsets.OFFSET_PERSONALIZED_CHAR);
-                } else
-                {
-                    if (personalizedReader.PeekItemBits<char>(new ItemOffsetStruct(InventoryOffsets.OFFSET_PERSONALIZED_CHAR.BitOffset, InventoryOffsets.OFFSET_PERSONALIZED_CHAR.BitLength - 1)) == '\0')
-                        break;
-                    result += personalizedReader.ReadItemBits<char>(new ItemOffsetStruct(InventoryOffsets.OFFSET_PERSONALIZED_CHAR.BitOffset, InventoryOffsets.OFFSET_PERSONALIZED_CHAR.BitLength - 1));
-                }
+                if (personalizedReader.PeekItemBits<char>(InventoryOffsets.OFFSET_PERSONALIZED_CHAR) == '\0')
+                    break;
+                result += personalizedReader.ReadItemBits<char>(InventoryOffsets.OFFSET_PERSONALIZED_CHAR);
             }
 
             mainReader.SetBitPosition(mainReader.bitPosition + personalizedReader.bitPosition + 8);
@@ -491,9 +499,218 @@ namespace D2SLib2.Structure.Player.Item
             return result;
         }
 
+        public bool WritePersonalizedName(BitwiseBinaryWriter writer)
+        {
+            for(int i=0;i<16;i++)
+            {
+                writer.WriteBits(PersonalizedName[i].ToBits((uint)InventoryOffsets.OFFSET_PERSONALIZED_CHAR.BitLength));
+            }
+            writer.WriteBits('\0'.ToBits((uint)InventoryOffsets.OFFSET_PERSONALIZED_CHAR.BitLength));
+            return true;
+        }
+
         private bool IsValidItem(string code)
         {
             return (D2S.instance!.dbContext!.ItemsTemplates.FirstOrDefault(x => x.Code == code.Trim()) != null);
+        }
+
+        public bool Write(BitwiseBinaryWriter writer)
+        {
+            writer.WriteBits(BasicItemFlags);
+            writer.WriteBits(((byte)itemVersion).ToBits((uint)InventoryOffsets.OFFSET_ITEM_VERSION.BitLength));
+            writer.WriteBits(((byte)Parent).ToBits((uint)InventoryOffsets.OFFSET_PARENT_LOCATION.BitLength));
+            writer.WriteBits(((byte)Equipped).ToBits((uint)InventoryOffsets.OFFSET_EQUIPPED_LOCATION.BitLength));
+            writer.WriteBits(((byte)Position.X).ToBits((uint)InventoryOffsets.OFFSET_INV_X_POSITION.BitLength));
+            writer.WriteBits(((byte)Position.Y).ToBits((uint)InventoryOffsets.OFFSET_INV_Y_POSITION.BitLength));
+            writer.WriteBits(((byte)Stored).ToBits((uint)InventoryOffsets.OFFSET_STORED_LOCATION.BitLength));
+
+            if(Ear)
+            {
+                writer.WriteBits(EarFileIndex.ToBits((uint)InventoryOffsets.OFFSET_EAR_FILE_INDEX.BitLength));
+                writer.WriteBits(EarLevel.ToBits((uint)InventoryOffsets.OFFSET_EAR_LEVEL.BitLength));
+                WritePersonalizedName(writer);
+            } else
+            {
+                WriteItemCode(writer);
+
+                if (SimpleItem && ItemType != null && ItemType.Contains("Quest"))
+                {
+                    ItemStatCost questItemDifficultyISC = D2S.instance?.dbContext?.ItemStatCosts.SingleOrDefault(x => x.Id == 356) ??
+                                                                throw new Exception("Unable to find questitemdifficulty (356) in itemstatcost datastore.");
+                    writer.WriteBits((SocketedItemCount + (int)(questItemDifficultyISC.SaveAdd ?? 0) ).ToBits((uint)(questItemDifficultyISC.SaveBits ?? 0)));
+                }
+                else
+                {
+                    if (SimpleItem)
+                    {
+                        writer.WriteBits(SocketedItemCount.ToBits((uint)InventoryOffsets.OFFSET_SIMPLE_SOCKETED_COUNT.BitLength));
+                    }
+                    else
+                    {
+                        writer.WriteBits(SocketedItemCount.ToBits((uint)InventoryOffsets.OFFSET_SOCKETED_COUNT.BitLength));
+                    }
+                }
+            }
+
+
+            if (!SimpleItem)
+            {
+                WriteComplexItem(writer);
+            }
+            writer.Align();
+            for (int sockets = 0; sockets < SocketedItemCount; sockets++) SocketedItems[sockets].Write(writer);
+            return true;
+        }
+
+        public bool WriteComplexItem(BitwiseBinaryWriter writer)
+        {
+            writer.WriteBits(Id.ToBits((uint)InventoryOffsets.OFFSET_ID.BitLength));
+            writer.WriteBits(ItemLevel.ToBits((uint)InventoryOffsets.OFFSET_ITEM_LEVEL.BitLength));
+            writer.WriteBits(((byte)Quality).ToBits((uint)InventoryOffsets.OFFSET_QUALITY.BitLength));
+            writer.WriteBit(new Bit(MultipleGraphics));
+            if(MultipleGraphics)
+            {
+                writer.WriteBits(GraphicId.ToBits((uint)InventoryOffsets.OFFSET_MULTIPLE_GRAPHICS.BitLength));
+            }
+
+            writer.WriteBit(new Bit(AutoAffix));
+            if(AutoAffix)
+            {
+                writer.WriteBits(AutoAffixId.ToBits((uint)InventoryOffsets.OFFSET_AUTO_AFFIX.BitLength));
+            }
+
+            switch (Quality)
+            {
+                case ItemQuality.INFERIOR:
+                    writer.WriteBits(InferiorFileIndex.ToBits((uint)InventoryOffsets.OFFSET_FILE_INDEX_INFERIOR.BitLength));
+                    break;
+                case ItemQuality.NORMAL: break;
+                case ItemQuality.SUPERIOR:
+                    writer.WriteBits(SuperiorFileIndex.ToBits((uint)InventoryOffsets.OFFSET_FILE_INDEX_SUPERIOR.BitLength));
+                    break;
+                case ItemQuality.MAGIC:
+                    writer.WriteBits(MagicPrefixId[0].ToBits((uint)InventoryOffsets.OFFSET_MAGIC_PREFIX_ID.BitLength));
+                    writer.WriteBits(MagicSuffixId[0].ToBits((uint)InventoryOffsets.OFFSET_MAGIC_SUFFIX_ID.BitLength));
+                    break;
+                case ItemQuality.RARE:
+                    writer.WriteBits(RarePrefixId.ToBits((uint)InventoryOffsets.OFFSET_RARE_PREFIX_ID.BitLength));
+                    writer.WriteBits(RareSuffixId.ToBits((uint)InventoryOffsets.OFFSET_RARE_SUFFIX_ID.BitLength));
+                    for (int i = 0; i < 3; i++)
+                    {
+                        writer.WriteBit(MagicPrefixId[i] > 0);
+                        if (MagicPrefixId[i] > 0)
+                        {
+                            writer.WriteBits(MagicPrefixId[i].ToBits((uint)InventoryOffsets.OFFSET_RARE_PREFIX_VALUE.BitLength));
+                        }
+
+                        writer.WriteBit(MagicSuffixId[i] > 0);
+                        if (MagicSuffixId[i] > 0)
+                        {
+                            writer.WriteBits(MagicSuffixId[i].ToBits((uint)InventoryOffsets.OFFSET_RARE_SUFFIX_VALUE.BitLength));
+                        }
+                    }
+                    break;
+                case ItemQuality.CRAFT:
+                    writer.WriteBits(CraftPrefixId.ToBits((uint)InventoryOffsets.OFFSET_CRAFT_PREFIX_ID.BitLength));
+                    writer.WriteBits(CraftSuffixId.ToBits((uint)InventoryOffsets.OFFSET_CRAFT_SUFFIX_ID.BitLength));
+                    for (int i = 0; i < 3; i++)
+                    {
+                        writer.WriteBit(MagicPrefixId[i] > 0);
+                        if (MagicPrefixId[i] > 0)
+                        {
+                            writer.WriteBits(MagicPrefixId[i].ToBits((uint)InventoryOffsets.OFFSET_CRAFT_PREFIX_VALUE.BitLength));
+                        }
+
+                        writer.WriteBit(MagicSuffixId[i] > 0);
+                        if (MagicSuffixId[i] > 0)
+                        {
+                            writer.WriteBits(MagicSuffixId[i].ToBits((uint)InventoryOffsets.OFFSET_CRAFT_SUFFIX_VALUE.BitLength));
+                        }
+                    }
+                    break;
+                case ItemQuality.SET:
+                    writer.WriteBits(SetFileIndex.ToBits((uint)InventoryOffsets.OFFSET_SET_FILE_INDEX.BitLength));
+                    break;
+                case ItemQuality.UNIQUE:
+                    writer.WriteBits(UniqueFileIndex.ToBits((uint)InventoryOffsets.OFFSET_UNIQUE_FILE_INDEX.BitLength));
+                    break;
+            }
+
+            if (Runeword)
+            {
+                if (RunewordId == 48) RunewordId = 2718;
+                writer.WriteBits(RunewordId.ToBits((uint)InventoryOffsets.OFFSET_RUNEWORD_ID.BitLength));
+                writer.WriteBits(RunewordProperty.ToBits((uint)InventoryOffsets.OFFSET_RUNEWORD_PROPERTY.BitLength));
+            }
+
+            if (Personalized)
+            {
+                WritePersonalizedName(writer);
+            }
+
+            if (Code.TrimEnd() == InventoryOffsets.OFFSET_TOWN_PORTAL_BOOK.ItemCode)
+            {
+                writer.WriteBits(((byte)MagicSuffixId[0]).ToBits((uint)InventoryOffsets.OFFSET_TOWN_PORTAL_BOOK.BitLength));
+            }
+            else if (Code.TrimEnd() == InventoryOffsets.OFFSET_IDENTIFY_BOOK.ItemCode)
+            {
+                writer.WriteBits(((byte)MagicSuffixId[0]).ToBits((uint)InventoryOffsets.OFFSET_IDENTIFY_BOOK.BitLength));
+            }
+
+            writer.WriteBit(new Bit(RealmDataExists));
+            if (RealmDataExists)
+            {
+                writer.WriteBits(RealmData!);
+            }
+
+            if (ItemType.Contains("Any Armor") && armor != null)
+            {
+                writer.WriteBits((armor.ArmorValue + (UInt16)(D2S.instance?.dbContext?.ItemStatCosts.SingleOrDefault(x => x.Stat == "armorclass")?.SaveAdd ?? 0)).ToBits((uint)InventoryOffsets.OFFSET_ARMOR_VALUE.BitLength));
+            }
+            else if (ItemType.Contains("Weapon"))
+            {
+                weapon = new Weapon();
+            }
+
+            if (armor != null || weapon != null)
+            {
+                ItemStatCost iscMaxDurability = D2S.instance!.dbContext!.ItemStatCosts.Single(x => x.Stat == "maxdurability");
+                ItemStatCost iscDurability = D2S.instance!.dbContext!.ItemStatCosts.Single(x => x.Stat == "durability");
+                writer.WriteBits((MaxDurability + (int)(iscMaxDurability.SaveAdd ?? 0)).ToBits((uint)(iscMaxDurability.SaveBits ?? 0)));
+                if (MaxDurability > 0)
+                {
+                    writer.WriteBits((Durability + (int)(iscDurability.SaveAdd ?? 0)).ToBits((uint)(iscDurability.SaveBits ?? 0)));
+                }
+            }
+
+            if (Stackable || itemTemplate!.Stackable >= 1)
+            {
+                writer.WriteBits(Quantity.ToBits((uint)InventoryOffsets.OFFSET_QUANTITY.BitLength));
+            }
+            if (Socketed)
+            {
+                writer.WriteBits(NumberOfSockets.ToBits((uint)InventoryOffsets.OFFSET_SOCKET_COUNT.BitLength));
+            }
+
+            if (Quality == ItemQuality.SET)
+            {
+                writer.WriteBits(SetItemMask.ToBits((uint)InventoryOffsets.OFFSET_SET_ITEM_MASK.BitLength));
+            }
+
+            // General magical attributes
+            magicalAttributes.ElementAt(0).Write(writer);
+
+            // This is for sets
+            int idx = 1;
+            for (int i = 1; i <= 64; i <<= 1)
+            {
+                if ((propertyList & i) != 0)
+                {
+                    magicalAttributes.ElementAt(idx++).Write(writer);
+                }
+            }
+
+            return true;
         }
     }
 }

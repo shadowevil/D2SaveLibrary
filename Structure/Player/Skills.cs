@@ -12,6 +12,7 @@ namespace D2SLib2.Structure.Player
     public class SkillsClass
     {
         public static int skillOffsetBits = -1;
+        public int skillIdOffsetForClass = -1;
         public HashSet<SkillClass> SkillList = new HashSet<SkillClass>();
 
         public SkillsClass() { }
@@ -26,14 +27,17 @@ namespace D2SLib2.Structure.Player
             if(_class == null)
                 throw new Exception("A database error occurred when searching for your class by ID");
 
-            int skillOffsetStart = (int)(D2S.instance?.dbContext?.Skills?.FirstOrDefault(x => x.Charclass == _class!.Code)?.Id ?? -1);
-            if (skillOffsetStart <= -1)
+            skills.skillIdOffsetForClass = (int)(D2S.instance?.dbContext?.Skills?.FirstOrDefault(x => x.Charclass == _class!.Code)?.Id ?? -1);
+            if (skills.skillIdOffsetForClass <= -1)
                 throw new Exception("Unable to find Skill offset from database, corrupt save?");
 
             for(int i=0;i<30;i++)
             {
-                skills.SkillList.Add(new SkillClass() { Id = skillOffsetStart + i, Value = mainReader.ReadBits(SkillsOffsets.OFFSET_SKILL.BitLength).ToByte() });
-                Logger.WriteSection(mainReader, SkillsOffsets.OFFSET_SKILL.BitLength, $"Skill Id: {skillOffsetStart + i} | Value: {skills.SkillList.Last().Value}");
+                skills.SkillList.Add(new SkillClass() {
+                    Id = skills.skillIdOffsetForClass + i,
+                    Value = mainReader.ReadBits(SkillsOffsets.OFFSET_SKILL.BitLength).ToByte((uint)SkillsOffsets.OFFSET_SKILL.BitLength, Endianness.BigEndian)
+                    });
+                Logger.WriteSection(mainReader, SkillsOffsets.OFFSET_SKILL.BitLength, $"Skill Id: {skills.skillIdOffsetForClass + i} | Value: {skills.SkillList.Last().Value}");
             }
 
             return skills;
@@ -42,9 +46,9 @@ namespace D2SLib2.Structure.Player
         public static void FindSkillOffsetInBytes(BitwiseBinaryReader mainReader)
         {
             mainReader.SetBytePosition(SkillsOffsets.OFFSET_START_SEARCH.Offset);
-            while (mainReader.PeekBits(16).ToStr() != SkillsOffsets.OFFSET_START_SEARCH.Signature) mainReader.SkipBytes(1);
+            while (mainReader.PeekBits(16).ToString(16, Endianness.BigEndian) != SkillsOffsets.OFFSET_START_SEARCH.Signature) mainReader.SkipBytes(1);
 
-            if (mainReader.PeekBits(SkillsOffsets.OFFSET_START_SEARCH.BitLength).ToStr() != SkillsOffsets.OFFSET_START_SEARCH.Signature)
+            if (mainReader.ReadBits(SkillsOffsets.OFFSET_START_SEARCH.BitLength).ToString((uint)SkillsOffsets.OFFSET_START_SEARCH.BitLength, Endianness.BigEndian) != SkillsOffsets.OFFSET_START_SEARCH.Signature)
                 throw new OffsetException("Unable to find Skill offset with search, corrupt save?");
             skillOffsetBits = mainReader.bitPosition;
 
@@ -54,7 +58,18 @@ namespace D2SLib2.Structure.Player
 
         public bool WriteSkills(BitwiseBinaryWriter writer)
         {
-            return false;
+            writer.WriteBits(SkillsOffsets.OFFSET_START_SEARCH.Signature.ToBits());
+            for(int i=0;i<30;i++)
+            {
+                if (SkillList.ElementAt(i).Id == skillIdOffsetForClass + i)
+                {
+                    writer.WriteBits(SkillList.ElementAt(i).Value.ToBits((uint)SkillsOffsets.OFFSET_SKILL.BitLength));
+                } else
+                {
+                    throw new Exception("SkillList miss aligned for skill id offsets, corrupt save? Miss matched list?");
+                }
+            }
+            return true;
         }
     }
 
@@ -62,6 +77,6 @@ namespace D2SLib2.Structure.Player
     public class SkillClass
     {
         public int Id { get; set; } = -1;
-        public int Value { get; set; } = -1;
+        public byte Value { get; set; } = 0;
     }
 }

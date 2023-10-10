@@ -78,7 +78,7 @@ public class HuffmanTree
 
     public InternalBitArray EncodeChar(char source)
     {
-        var encodedSymbol = Root?.Traverse(source, new InternalBitArray(0));
+        InternalBitArray? encodedSymbol = Root?.Traverse(source, new InternalBitArray(0));
         if (encodedSymbol is null)
             throw new InvalidOperationException("Could not encode with an empty tree.");
         return encodedSymbol;
@@ -89,7 +89,7 @@ public class HuffmanTree
         var current = Root;
         while (!(current?.IsLeaf() ?? true))
         {
-            if (reader.ReadBit())
+            if (reader.ReadBit() == 1)
             {
                 if (current.Right is not null)
                 {

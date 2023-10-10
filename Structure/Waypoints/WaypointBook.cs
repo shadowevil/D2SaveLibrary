@@ -9,7 +9,7 @@ namespace D2SLib2.Structure.Waypoints
 {
     public class WaypointBook
     {
-        public string Signature = string.Empty;
+        public string? Signature = string.Empty;
         public UInt32 Version = UInt32.MaxValue;
         public UInt16 Size = UInt16.MaxValue;
 
@@ -23,16 +23,12 @@ namespace D2SLib2.Structure.Waypoints
         {
             WaypointBook book = new WaypointBook();
 
-            mainReader.SetBytePosition(WaypointOffsets.OFFSET_SIGNATURE.Offset);
-            book.Signature = mainReader.ReadBits(WaypointOffsets.OFFSET_SIGNATURE.BitLength).ToStr();
+            book.Signature = mainReader.Read<string>(WaypointOffsets.OFFSET_SIGNATURE);
             if (book.Signature != WaypointOffsets.OFFSET_SIGNATURE.Signature)
                 throw new OffsetException("Unable to locate waypoint signature, corrupt save?");
 
-            mainReader.SetBytePosition(WaypointOffsets.OFFSET_VERSION.Offset);
-            book.Version = mainReader.ReadBits(WaypointOffsets.OFFSET_VERSION.BitLength).ToUInt32();
-
-            mainReader.SetBytePosition(WaypointOffsets.OFFSET_SIZE.Offset);
-            book.Size = mainReader.ReadBits(WaypointOffsets.OFFSET_SIZE.BitLength).ToUInt16();
+            book.Version = mainReader.Read<UInt32>(WaypointOffsets.OFFSET_VERSION);
+            book.Size = mainReader.Read<UInt16>(WaypointOffsets.OFFSET_SIZE);
 
             book.Normal = WaypointDifficulty.Read(mainReader, WaypointOffsets.OFFSET_NORMAL);
             book.Nightmare = WaypointDifficulty.Read(mainReader, WaypointOffsets.OFFSET_NIGHTMARE);
@@ -46,8 +42,8 @@ namespace D2SLib2.Structure.Waypoints
             if (writer.GetBytes().Length != WaypointOffsets.OFFSET_SIGNATURE.Offset)
                 return false;
            writer.WriteBits(WaypointOffsets.OFFSET_SIGNATURE.Signature.ToBits());
-           writer.WriteBits(Version.ToBits());
-           writer.WriteBits(Size.ToBits());
+           writer.WriteBits(Version.ToBits((uint)WaypointOffsets.OFFSET_VERSION.BitLength));
+           writer.WriteBits(Size.ToBits((uint)WaypointOffsets.OFFSET_SIZE.BitLength));
 
             Normal!.WriteDifficulty(writer, WaypointOffsets.OFFSET_NORMAL.Offset);
             Nightmare!.WriteDifficulty(writer, WaypointOffsets.OFFSET_NIGHTMARE.Offset);

@@ -11,7 +11,7 @@ namespace D2SLib2.Structure.Player.Item
 {
     public class Inventory
     {
-        public int ItemCount = 0;
+        public UInt16 ItemCount = 0;
         public HashSet<ItemStructure> ItemList = new HashSet<ItemStructure>();
 
         public Inventory() { }
@@ -23,7 +23,7 @@ namespace D2SLib2.Structure.Player.Item
             if (mainReader.ReadSkipPositioning<string>(InventoryOffsets.OFFSET_START_SEARCH) != InventoryOffsets.OFFSET_START_SEARCH.Signature)
                 throw new OffsetException("Unable to find Inventory offset, corrupt save?");
 
-            inventory.ItemCount = (int)mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_ITEM_COUNT);
+            inventory.ItemCount = mainReader.ReadItemBits<UInt16>(InventoryOffsets.OFFSET_ITEM_COUNT);
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_ITEM_COUNT.BitLength, $"Item Count: {inventory.ItemCount}");
 
             inventory.ItemList = new HashSet<ItemStructure>();
@@ -43,7 +43,7 @@ namespace D2SLib2.Structure.Player.Item
         public static void FindInventoryOffsetInBytes(BitwiseBinaryReader mainReader)
         {
             mainReader.SetBytePosition(InventoryOffsets.OFFSET_START_SEARCH.Offset);
-            while (mainReader.PeekBits(16).ToStr() != InventoryOffsets.OFFSET_START_SEARCH.Signature) mainReader.SkipBytes(1);
+            while (mainReader.PeekBits(16).ToString(16, Endianness.BigEndian) != InventoryOffsets.OFFSET_START_SEARCH.Signature) mainReader.SkipBytes(1);
 
             InventoryOffset = mainReader.bitPosition;
             Logger.WriteSection(mainReader, 0, $"Inventory Offset found: {InventoryOffset / 8} | {InventoryOffset}");
@@ -52,7 +52,15 @@ namespace D2SLib2.Structure.Player.Item
 
         public bool WriteInventory(BitwiseBinaryWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteBits(InventoryOffsets.OFFSET_START_SEARCH.Signature.ToBits());
+            writer.WriteBits(ItemCount.ToBits((uint)InventoryOffsets.OFFSET_ITEM_COUNT.BitLength));
+
+            for(int i=0;i<ItemCount;i++)
+            {
+                ItemList.ElementAt(i).Write(writer);
+            }
+
+            return true;
         }
     }
 }

@@ -34,5 +34,13 @@ namespace D2SLib2.Structure.Header
             BinaryPrimitives.WriteInt32LittleEndian(checksumbytes, checksum);
             return checksumbytes;
         }
+
+        public static void WriteChecksumBytes(ref byte[] data, byte[] checksumBytes)
+        {
+            for(int i = 12; i < 16;i++)
+            {
+                data[i] = checksumBytes[i - 12];
+            }
+        }
     }
 }

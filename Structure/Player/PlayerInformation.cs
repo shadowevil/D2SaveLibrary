@@ -79,8 +79,9 @@ namespace D2SLib2.Structure.Player
             mainReader.SetBytePosition(PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.Offset);
             for(int i=0;i<16;i++)
             {
-                playerInfo.AssignedSkills[i] = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16).ToUInt32();
-                if (playerInfo.AssignedSkills[i] == UInt16.MaxValue) playerInfo.AssignedSkills[i] = 0;
+                playerInfo.AssignedSkills[i] = mainReader.ReadBits(PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16)
+                                                                    .ToUInt32((uint)PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16, Endianness.BigEndian);
+                if (playerInfo.AssignedSkills[i] == UInt16.MaxValue) playerInfo.AssignedSkills[i] = 0x00;
                 Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16, $"Assigned Skill: {playerInfo.AssignedSkills[i]}");
             }
 
@@ -205,12 +206,32 @@ namespace D2SLib2.Structure.Player
             Inventory.EndCorpseOffset = mainReader.bitPosition;
         }
 
+        public bool WriteCorpseInformation(BitwiseBinaryWriter writer)
+        {
+            writer.WriteBits(PlayerInformationOffsets.OFFSET_CORPSE_INFORMATION_MARKER.Signature.ToBits());
+            writer.WriteBits(IsPlayerDeadCount.ToBits((uint)PlayerInformationOffsets.OFFSET_CORPSE_COUNT.BitLength));
+            for (int i = 0; i < IsPlayerDeadCount; i++)
+            {
+                writer.WriteVoidBits(32 * 8);
+                if (CorpseLocation != null)
+                {
+                    foreach (Point corpseLocation in CorpseLocation)
+                    {
+                        writer.WriteBits(corpseLocation.X.ToBits((uint)PlayerInformationOffsets.OFFSET_CORPSE_XY_LOCATION.BitLength));
+                        writer.WriteBits(corpseLocation.Y.ToBits((uint)PlayerInformationOffsets.OFFSET_CORPSE_XY_LOCATION.BitLength));
+                    }
+                }
+                if (CorpseInventory != null) CorpseInventory.WriteInventory(writer);
+            }
+            return true;
+        }
+
         public bool WriteActiveWeapon(BitwiseBinaryWriter writer)
         {
             if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON.Offset)
                 return false;
 
-           writer.WriteBits(ActiveWeapon.ToBits());
+           writer.WriteBits(ActiveWeapon.ToBits((uint)PlayerInformationOffsets.OFFSET_ACTIVE_WEAPON.BitLength));
             return true;
         }
 
@@ -224,8 +245,8 @@ namespace D2SLib2.Structure.Player
                writer.WriteVoidBits(16 * 8);
             }
 
-           writer.WriteBits(statusClass!.GetFlags().ToBytes().ToBits(), false);
-           return true;
+            writer.WriteBits(statusClass!.GetFlags());
+            return true;
         }
 
         public bool WriteProgression(BitwiseBinaryWriter writer)
@@ -233,7 +254,7 @@ namespace D2SLib2.Structure.Player
             if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_PROGRESSION.Offset)
                 return false;
 
-           writer.WriteBits(progressionFlags!.ToBytes().ToBits());
+            writer.WriteBits(progressionFlags!);
             return true;
         }
 
@@ -247,7 +268,7 @@ namespace D2SLib2.Structure.Player
                writer.WriteVoidBits(2 * 8);
             }
 
-           writer.WriteBits(((byte)playerClass).ToBits());
+           writer.WriteBits(((byte)playerClass).ToBits((uint)PlayerInformationOffsets.OFFSET_PLAYERCLASS.BitLength));
             return true;
         }
 
@@ -258,11 +279,11 @@ namespace D2SLib2.Structure.Player
                 if (writer.GetBytes().Length + 2 != PlayerInformationOffsets.OFFSET_PLAYERLEVEL.Offset)
                     return false;
 
-               writer.WriteBits(((byte)0x10).ToBits());
-               writer.WriteBits(((byte)0x1E).ToBits());
+               writer.WriteBits(((byte)0x10).ToBits(8, Endianness.LittleEndian));
+               writer.WriteBits(((byte)0x1E).ToBits(8, Endianness.LittleEndian));
             }
 
-           writer.WriteBits(((byte)playerLevel).ToBits());
+           writer.WriteBits(((byte)playerLevel).ToBits((uint)PlayerInformationOffsets.OFFSET_PLAYERLEVEL.BitLength));
             return true;
         }
 
@@ -277,7 +298,7 @@ namespace D2SLib2.Structure.Player
             }
             TimeSpan timeSpan = CreatedTimeStamp.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             UInt32 unixTimestamp = (UInt32)timeSpan.TotalSeconds;
-           writer.WriteBits(((UInt32)unixTimestamp).ToBits());
+            writer.WriteBits(((UInt32)unixTimestamp).ToBits((uint)PlayerInformationOffsets.OFFSET_UNIX_TIMESTAMP.BitLength, Endianness.LittleEndian));
             return true;
         }
 
@@ -288,7 +309,7 @@ namespace D2SLib2.Structure.Player
                 if (writer.GetBytes().Length + 4 != PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.Offset)
                     return false;
 
-               writer.WriteBits(((UInt32)0xFFFFFFFF).ToBits());
+                writer.WriteBits(UInt32.MaxValue.ToBits(32));
             }
 
             for (int i = 0; i < 16; i++)
@@ -296,18 +317,18 @@ namespace D2SLib2.Structure.Player
                 UInt32 skillId = AssignedSkills[i];
                 if (skillId == 0)
                 {
-                   writer.WriteBits(0xFFFF.ToBits());
+                    writer.WriteBits(65535.ToBits(32, Endianness.LittleEndian));
                 }
                 else
                 {
-                   writer.WriteBits(skillId.ToBits());
+                    writer.WriteBits(skillId.ToBits((uint)PlayerInformationOffsets.OFFSET_ASSIGNED_SKILLS.BitLength / 16, Endianness.LittleEndian));
                 }
             }
 
-           writer.WriteBits(LeftMouseSkill.ToBits());
-           writer.WriteBits(RightMouseSkill.ToBits());
-           writer.WriteBits(SwitchLeftMouseSkill.ToBits());
-           writer.WriteBits(SwitchRightMouseSkill.ToBits());
+           writer.WriteBits(LeftMouseSkill.ToBits((uint)PlayerInformationOffsets.OFFSET_LEFTMOUSESKILL.BitLength, Endianness.LittleEndian));
+           writer.WriteBits(RightMouseSkill.ToBits((uint)PlayerInformationOffsets.OFFSET_RIGHTMOUSESKILL.BitLength, Endianness.LittleEndian));
+           writer.WriteBits(SwitchLeftMouseSkill.ToBits((uint)PlayerInformationOffsets.OFFSET_SWITCHLEFTMOUSESKILL.BitLength, Endianness.LittleEndian));
+           writer.WriteBits(SwitchRightMouseSkill.ToBits((uint)PlayerInformationOffsets.OFFSET_SWITCHRIGHTMOUSESKILL.BitLength, Endianness.LittleEndian));
 
             return true;
         }
@@ -317,7 +338,7 @@ namespace D2SLib2.Structure.Player
             if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_MAPID.Offset)
                 return false;
 
-           writer.WriteBits(MapSeed.ToBits());
+           writer.WriteBits(MapSeed.ToBits((uint)PlayerInformationOffsets.OFFSET_MAPID.BitLength));
             return true;
         }
 
@@ -328,26 +349,32 @@ namespace D2SLib2.Structure.Player
 
             for(int i=0;i<16;i++)
             {
-                if (PlayerName.Length > i) writer.WriteBits(((byte)PlayerName[i]).ToBits());
-                else writer.WriteBits('\0'.ToBits());
+                if (PlayerName.Length > i) writer.WriteBits(((byte)PlayerName[i]).ToBits((uint)PlayerInformationOffsets.OFFSET_PLAYER_NAME.BitLength / 16));
+                else writer.WriteBits('\0'.ToBits((uint)PlayerInformationOffsets.OFFSET_PLAYER_NAME.BitLength / 16));
             }
 
             return true;
         }
 
-        public bool WriteCorpseInformation(BitwiseBinaryWriter writer)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool WriteMercenaryInventoryInformation(BitwiseBinaryWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteBits(PlayerInformationOffsets.OFFSET_MERCENARY_INVENTORY_MARKER.Signature.ToBits());
+            if (D2S.instance?.mercenary!.Seed > 0 && MercenaryInventory != null)
+            {
+                MercenaryInventory.WriteInventory(writer);
+            }
+            return true;
         }
 
         public bool WriteIronGolemInformation(BitwiseBinaryWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteBits(PlayerInformationOffsets.OFFSET_IRON_GOLEM_MARKER.Signature.ToBits());
+            writer.WriteBits(((byte)Convert.ToUInt16(HasIronGolem)).ToBits((uint)PlayerInformationOffsets.OFFSET_IRON_GOLEM_BOOL.BitLength));
+            if(HasIronGolem && IronGolemItem != null)
+            {
+                IronGolemItem.Write(writer);
+            }
+            return true;
         }
     }
 
@@ -363,10 +390,10 @@ namespace D2SLib2.Structure.Player
         // 6 IsLadder (not really used in single player though?)
         // 7 ?
         public Bit[] Flags { get; private set; }
-        public bool Hardcore    { get => Flags[2]; set => Flags[2] = new Bit(value); }
-        public bool Died        { get => Flags[3]; set => Flags[3] = new Bit(value); }
-        public bool Expansion   { get => Flags[5]; set => Flags[5] = new Bit(value); }
-        public bool Ladder      { get => Flags[6]; set => Flags[6] = new Bit(value); }
+        public bool Hardcore    { get => (bool)Flags[2]; set => Flags[2] = value; }
+        public bool Died        { get => (bool)Flags[3]; set => Flags[3] = value; }
+        public bool Expansion   { get => (bool)Flags[5]; set => Flags[5] = value; }
+        public bool Ladder      { get => (bool)Flags[6]; set => Flags[6] = value; }
 
         public StatusClass(Bit[]? flags)
         {
@@ -434,51 +461,51 @@ namespace D2SLib2.Structure.Player
                 {
                     if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
                     {
-                        Sir_Male = flags[2] & !flags[3];
-                        Lord_Male = !flags[2] & flags[3];
-                        Baron_Male = flags[2] & flags[3];
+                        Sir_Male = ((bool)flags[2]) & !((bool)flags[3]);
+                        Lord_Male = !((bool)flags[2]) & ((bool)flags[3]);
+                        Baron_Male = ((bool)flags[2]) & ((bool)flags[3]);
                     }
                     else
                     {
-                        Dame_Female = flags[2] & !flags[3];
-                        Lady_Female = !flags[2] & flags[3];
-                        Baroness_Female = flags[2] & flags[3];
+                        Dame_Female = ((bool)flags[2]) & !((bool)flags[3]);
+                        Lady_Female = !((bool)flags[2]) & ((bool)flags[3]);
+                        Baroness_Female = ((bool)flags[2]) & ((bool)flags[3]);
                     }
                 } else {
                     if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
                     {
-                        Count_Male = flags[2] & !flags[3];
-                        Duke_Male = !flags[2] & flags[3];
-                        King_Male = flags[2] & flags[3];
+                        Count_Male = ((bool)flags[2]) & !((bool)flags[3]);
+                        Duke_Male = !((bool)flags[2]) & ((bool)flags[3]);
+                        King_Male = ((bool)flags[2]) & ((bool)flags[3]);
                     }
                     else
                     {
-                        Countess_Female = flags[2] & !flags[3];
-                        Duchess_Female = !flags[2] & flags[3];
-                        Queen_Female = flags[2] & flags[3];
+                        Countess_Female = ((bool)flags[2]) & !((bool)flags[3]);
+                        Duchess_Female = !((bool)flags[2]) & ((bool)flags[3]);
+                        Queen_Female = ((bool)flags[2]) & ((bool)flags[3]);
                     }
                 }
             } else
             {
                 if (!isHardcore)
                 {
-                    Slayer = flags[0] & !flags[1] & flags[2] & !flags[3];
-                    Champion = !flags[0] & flags[1] & !flags[2] & flags[3];
+                    Slayer = ((bool)flags[0]) & !((bool)flags[1]) & ((bool)flags[2]) & !((bool)flags[3]);
+                    Champion = !((bool)flags[0]) & ((bool)flags[1]) & !((bool)flags[2]) & ((bool)flags[3]);
                     if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN
                         || _class == PlayerClass.PALADIN || _class == PlayerClass.DRUID)
                     {
-                        Patriarch_Male = flags[0] & flags[1] & flags[2] & flags[3];
+                        Patriarch_Male = ((bool)flags[0]) & ((bool)flags[1]) & ((bool)flags[2]) & ((bool)flags[3]);
                     }
                     else
                     {
-                        Matriarch_Female = flags[0] & flags[1] & flags[2] & flags[3];
+                        Matriarch_Female = ((bool)flags[0]) & ((bool)flags[1]) & ((bool)flags[2]) & ((bool)flags[3]);
                     }
                 }
                 else
                 {
-                    Destroyer = flags[0] & !flags[1] & flags[2] & !flags[3];
-                    Conqueror = !flags[0] & flags[1] & !flags[2] & flags[3];
-                    Guardian = flags[0] & flags[1] & flags[2] & flags[3];
+                    Destroyer = ((bool)flags[0]) & !((bool)flags[1]) & ((bool)flags[2]) & !((bool)flags[3]);
+                    Conqueror = !((bool)flags[0]) & ((bool)flags[1]) & !((bool)flags[2]) & ((bool)flags[3]);
+                    Guardian = ((bool)flags[0]) & ((bool)flags[1]) & ((bool)flags[2]) & ((bool)flags[3]);
                 }
             }
         }
@@ -571,7 +598,9 @@ namespace D2SLib2.Structure.Player
             if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_DIFFICULTY.Offset + difficultyLevel)
                 return false;
 
-           writer.WriteBits(flags!.ToByte().ToBits());
+
+
+            writer.WriteBits(flags!);
             return true;
         }
 

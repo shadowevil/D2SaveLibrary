@@ -10,190 +10,59 @@ namespace D2SLib2.BinaryHandler
     public class BitwiseBinaryWriter
     {
         private List<Bit> bits = new List<Bit>();
-        private List<byte> buffer = new List<byte>();
+        private List<byte> bytes = new List<byte>();
+        public byte[] GetBytes() => bytes.ToArray();
+        public Bit[] GetBits() => bits.ToArray();
+        public int d_bits { get => ((bytes.Count() * 8) + bits.Count());  }
 
-        public byte[] GetBytes() => buffer.ToArray();
-        public int FlushCount => bits.Count;
+        public void Align() { while (bits.Count % 8 > 0) WriteVoidBits(1); }
 
-        public BitwiseBinaryWriter()
+        public void WriteVoidBits(uint numBits)
         {
-
+            for (int i = 0; i < numBits; i++)
+            {
+                WriteBit(0);
+            }
+            FlushBits(Endianness.LittleEndian);
         }
 
-        public void WriteBit(Bit bit, bool isLittleEndian = false)
+        public void WriteBit(Bit bit)
         {
             bits.Add(bit);
-            FlushIfNeeded(isLittleEndian);
         }
 
-        public void WriteBits(IEnumerable<Bit> bits, bool isLittleEndian = false)
+        public void WriteBits(Bit[] bits, Endianness endianness = Endianness.LittleEndian)
         {
-            this.bits.AddRange(bits);
-            FlushIfNeeded(isLittleEndian);
-        }
-
-        public void WriteBits(IEnumerable<Bit> bits, int n, bool isLittleEndian = false)
-        {
-            // Take only 'n' bits from the input, starting from the most significant if big-endian
-            // or least significant if little-endian
-            IEnumerable<Bit> selectedBits = isLittleEndian ?
-                bits.TakeLast(n) :
-                bits.Take(n);
-
-            this.bits.AddRange(selectedBits);
-            FlushIfNeeded(isLittleEndian);
-        }
-
-        public Bit[] GetNumBits(IEnumerable<Bit> bits, int n, bool isLittleEndian = false)
-        {
-            IEnumerable<Bit> selectedBits = isLittleEndian ?
-                bits.TakeLast(n) :
-                bits.Take(n);
-
-            return selectedBits.ToArray();
-        }
-
-        private void FlushIfNeeded(bool isLittleEndian = false)
-        {
-            while (bits.Count >= 8)
+            for (int i = 0; i < bits.Length; i++)
             {
-                byte byteValue = ConvertBitsToByte(bits.GetRange(0, 8), isLittleEndian);
-                buffer.Add(byteValue);
-                bits.RemoveRange(0, 8);
+                WriteBit(bits[i]);
             }
+            FlushBits(endianness);
         }
 
-        private byte ConvertBitsToByte(List<Bit> bits, bool isLittleEndian = false)
+        public void FlushBits(Endianness endianness)
         {
-            byte value = 0;
-            for (int i = 0; i < 8; i++)
+            List<byte> lbytes = new List<byte>();
+            int i = 0;
+            for (; i < bits.Count - (bits.Count % 8); i += 8)
             {
-                int index = isLittleEndian ? i : (7 - i);
-                if (bits[index].Value == 1)
+                byte b = 0;
+                for (int j = 0; j < 8; j++)
                 {
-                    value |= (byte)(1 << (7 - i));
+                    int bitIndex = (endianness == Endianness.LittleEndian) ? j : (7 - j);
+                    if (bits[i + j].Value == 1)
+                    {
+                        b |= (byte)(1 << bitIndex);
+                    }
                 }
+                lbytes.Add(b);
             }
-            return value;
-        }
 
-        public void Flush(bool isLittleEndian = false)
-        {
-            if (bits.Count > 0)
-            {
-                // Fill remaining bits with zeros and write
-                while (bits.Count < 8)
-                {
-                    bits.Add(new Bit(0));
-                }
-                byte byteValue = ConvertBitsToByte(bits, isLittleEndian);
-                buffer.Add(byteValue);
-                bits.Clear();
-            }
-        }
+            // Remove the bits that have been converted to bytes
+            bits.RemoveRange(0, i);
 
-        public byte[] ToArray()
-        {
-            Flush();
-            return buffer.ToArray();
-        }
-
-        public List<byte> ToList()
-        {
-            Flush();
-            return new List<byte>(buffer);
-        }
-
-        public void WriteVoidBits(int numBits)
-        {
-            for(int i=0;i<numBits;i++)
-            {
-                bits.Add(new Bit(0));
-                FlushIfNeeded();
-            }
-        }
-    }
-
-    public static class BitExtensions
-    {
-        public static Bit[] ToBits(this uint value, bool isLittleEndian = true)
-        {
-            Bit[] bits = new Bit[32];
-            for (int i = 0; i < 32; i++)
-            {
-                int index = isLittleEndian ? i : (31 - i);
-                bits[index] = new Bit((int)(value >> i) & 1);
-            }
-            return bits;
-        }
-
-        public static Bit[] ToBits(this int value, bool isLittleEndian = true)
-        {
-            Bit[] bits = new Bit[32];
-            for (int i = 0; i < 32; i++)
-            {
-                int index = isLittleEndian ? i : (31 - i);
-                bits[index] = new Bit((value >> i) & 1);
-            }
-            return bits;
-        }
-
-        public static Bit[] ToBits(this ushort value, bool isLittleEndian = true)
-        {
-            Bit[] bits = new Bit[16];
-            for (int i = 0; i < 16; i++)
-            {
-                int index = isLittleEndian ? i : (15 - i);
-                bits[index] = new Bit((value >> i) & 1);
-            }
-            return bits;
-        }
-
-        public static Bit[] ToBits(this short value, bool isLittleEndian = true)
-        {
-            Bit[] bits = new Bit[16];
-            for (int i = 0; i < 16; i++)
-            {
-                int index = isLittleEndian ? i : (15 - i);
-                bits[index] = new Bit((value >> i) & 1);
-            }
-            return bits;
-        }
-
-        public static Bit[] ToBits(this byte value, bool isLittleEndian = true)
-        {
-            Bit[] bits = new Bit[8];
-            for (int i = 0; i < 8; i++)
-            {
-                int index = isLittleEndian ? i : (7 - i);
-                bits[index] = new Bit((value >> i) & 1);
-            }
-            return bits;
-        }
-
-        public static Bit[] ToBits(this char value, bool isLittleEndian = true)
-        {
-            return ((byte)value).ToBits(isLittleEndian);
-        }
-
-        public static Bit[] ToBits(this string value, bool isLittleEndian = true)
-        {
-            List<Bit> bits = new List<Bit>();
-            foreach (char c in value)
-            {
-                bits.AddRange(c.ToBits(isLittleEndian));
-            }
-            return bits.ToArray();
-        }
-
-        public static Bit[] ToBits(this byte[] value, bool isLittleEndian = true)
-        {
-            List<Bit> bits = new List<Bit>();
-            foreach (byte b in value)
-            {
-                bits.AddRange(b.ToBits(isLittleEndian));
-            }
-            return bits.ToArray();
+            // Add the new bytes to the existing byte list
+            bytes.AddRange(lbytes);
         }
     }
 }
