@@ -46,6 +46,11 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_MAGICAL_ATTRIABUTE_ID.BitLength, $"Magical Attribute Id: {Id}");
             while(Id != 0x1ff)
             {
+                if(Id == 17)
+                {
+                    bool t = true;
+                }
+
                 if (Id > D2S.instance!.dbContext!.ItemStatCosts.OrderBy(x => x.Id).Last().Id)
                 {
                     Logger.Close();
@@ -115,18 +120,12 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
 
                 switch (Id)
                 {
-                    case 17:
-                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == 18)!);
-                        break;
-                    case 159:
-                    case 21:
-                        ItemStatCostSet.RemoveAt(ItemStatCostSet.Count - 1);
-                        break;
                     case 54:
                     case 57:
                         ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id + 1)!);
                         ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == Id + 2)!);
                         break;
+                    case 17:
                     case 48:
                     case 50:
                     case 52:
@@ -163,18 +162,12 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
 
                 switch (MagicalList.ElementAt(i).Id)
                 {
-                    case 17:
-                        ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == 18)!);
-                        break;
-                    case 159:
-                    case 21:
-                        ItemStatCostSet.RemoveAt(ItemStatCostSet.Count - 1);
-                        break;
                     case 54:
                     case 57:
                         ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id + 1)!);
                         ItemStatCostSet.Add(D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id + 2)!);
                         break;
+                    case 17:
                     case 48:
                     case 50:
                     case 52:
