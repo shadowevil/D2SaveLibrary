@@ -46,11 +46,6 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
             Logger.WriteSection(mainReader, InventoryOffsets.OFFSET_MAGICAL_ATTRIABUTE_ID.BitLength, $"Magical Attribute Id: {Id}");
             while(Id != 0x1ff)
             {
-                if(Id == 17)
-                {
-                    bool t = true;
-                }
-
                 if (Id > D2S.instance!.dbContext!.ItemStatCosts.OrderBy(x => x.Id).Last().Id)
                 {
                     Logger.Close();
@@ -148,16 +143,17 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
         {
             for(int i=0;i<MagicalList.Count;)
             {
-                ItemStatCost? isc = D2S.instance!.dbContext!.ItemStatCosts.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id);
+                ItemStatCost statcost = D2S.instance!.dbContext!.ItemStatCosts!.SingleOrDefault(x => x.Id == MagicalList.ElementAt(i).Id) ??
+                    throw new Exception($"Stat Id {MagicalList.ElementAt(i).Id} not found in ItemStatCost");
                 writer.WriteBits(MagicalList.ElementAt(i).Id.ToBits((uint)InventoryOffsets.OFFSET_MAGICAL_ATTRIABUTE_ID.BitLength));
 
-                IQueryable<Property>? properties = D2S.instance?.dbContext?.Properties?.Where(x => x.Stat1 == isc!.Stat && !filters.Contains(x.Code));
+                IQueryable<Property>? properties = D2S.instance?.dbContext?.Properties?.Where(x => x.Stat1 == statcost!.Stat && !filters.Contains(x.Code));
                 if (properties == null)
                     throw new Exception($"Property not found for {MagicalList.ElementAt(i).Id} in the Properties datastore");
 
                 List<ItemStatCost> ItemStatCostSet = new List<ItemStatCost>()
                 {
-                    isc
+                    statcost
                 };
 
                 switch (MagicalList.ElementAt(i).Id)

@@ -71,6 +71,10 @@ namespace D2SLib2.Structure.Player.Item
 
     public class ItemStructure
     {
+        public ItemStructure() {
+
+        }
+
         public ItemStructure(BitwiseBinaryReader mainReader)
         {
             ReadBasicItemFlags(mainReader);
@@ -532,6 +536,12 @@ namespace D2SLib2.Structure.Player.Item
             } else
             {
                 WriteItemCode(writer);
+
+                if (itemTemplate == null)
+                {
+                    itemTemplate = D2S.instance?.dbContext?.ItemsTemplates.SingleOrDefault(x => x.Code == Code.TrimEnd());
+                    if (itemTemplate == null) throw new InvalidItemException("Unable to retrieve Item Template from data store");
+                }
 
                 if (SimpleItem && ItemType != null && ItemType.Contains("Quest"))
                 {
