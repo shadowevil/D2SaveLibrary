@@ -11,6 +11,26 @@ namespace D2SLib2.Structure.Player
 {
     public class Attributes
     {
+        public enum AttributesEnum
+        {
+            strength = 0,
+            energy = 1,
+            dexterity = 2,
+            vitality = 3,
+            statpts = 4,
+            newskills = 5,
+            hitpoints = 6,
+            maxhp = 7,
+            mana = 8,
+            maxmana = 9,
+            stamina = 10,
+            maxstamina = 11,
+            level = 12,
+            experience = 13,
+            gold = 14,
+            goldbank = 15
+        }
+
         public HashSet<Attribute> attributeList = new HashSet<Attribute>();
 
         public Attributes() { }

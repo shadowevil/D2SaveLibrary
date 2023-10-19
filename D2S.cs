@@ -23,6 +23,8 @@ namespace D2SLib2
         public static D2S? instance { get; private set; } = null;
         public BitwiseBinaryReader? d2sReader { get; private set; } = null;
 
+        public int initialFileSize { get; private set; } = 0;
+
         [JsonIgnore]
         public D2slibDataContext? dbContext { get; private set; } = null;
 
@@ -53,6 +55,7 @@ namespace D2SLib2
             dbContext = new D2slibDataContext();
 
             d2sReader = new BitwiseBinaryReader(OpenFilePath);
+            initialFileSize = d2sReader.ByteArray!.Length;
             string fileName = Path.GetFileNameWithoutExtension(OpenFilePath);
             Logger.LogPath = Directory.GetCurrentDirectory() + $"\\Logs\\{fileName}.d2slog";
             Logger.WriteHeader("#--------------------------------------------------------------------------------------------------------------------#");

@@ -16,7 +16,6 @@ namespace D2SLib2.Structure.Player
         public UInt32 ActiveWeapon = UInt32.MaxValue;
         public StatusClass? statusClass = null;
 
-        private Bit[]? progressionFlags = new Bit[PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength];
         public ProgressionClass? Progression = null;
 
         public PlayerClass playerClass = PlayerClass.AMAZON;
@@ -62,8 +61,8 @@ namespace D2SLib2.Structure.Player
             playerInfo.statusClass = new StatusClass(mainReader.Read<Bit[]>(PlayerInformationOffsets.OFFSET_CHARACTER_STATUS));
             Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_CHARACTER_STATUS.BitLength, $"Status Class: {playerInfo.statusClass.Flags!.ToStringRepresentation()}");
 
-            playerInfo.progressionFlags = mainReader.Read<Bit[]>(PlayerInformationOffsets.OFFSET_PROGRESSION);
-            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength, $"Progression Flags: {playerInfo.progressionFlags!.ToStringRepresentation()}");
+            playerInfo.Progression = new ProgressionClass(mainReader.Read<Bit[]>(PlayerInformationOffsets.OFFSET_PROGRESSION) ?? throw new Exception("Something happened"));
+            Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength, $"Progression Flags: {playerInfo.Progression.progressionFlags!.ToStringRepresentation()}");
 
             playerInfo.playerClass = (PlayerClass)mainReader.Read<byte>(PlayerInformationOffsets.OFFSET_PLAYERCLASS);
             Logger.WriteSection(mainReader, PlayerInformationOffsets.OFFSET_PLAYERCLASS.BitLength, $"Player Class: {playerInfo.playerClass}");
@@ -141,8 +140,6 @@ namespace D2SLib2.Structure.Player
                 Logger.WriteEndSection("[End Iron Golem Inventory Reading]");
             }
 
-            // To ensure no issues when setting bits
-            playerInfo.Progression = new ProgressionClass(playerInfo.progressionFlags!, playerInfo.playerClass, playerInfo.statusClass.Expansion, playerInfo.statusClass.Hardcore);
             return playerInfo;
         }
 
@@ -254,7 +251,7 @@ namespace D2SLib2.Structure.Player
             if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_PROGRESSION.Offset)
                 return false;
 
-            writer.WriteBits(progressionFlags!);
+            writer.WriteBits(Progression!.progressionFlags!);
             return true;
         }
 
@@ -415,99 +412,697 @@ namespace D2SLib2.Structure.Player
         // Expansion worries about the 1st up to the 4th bits
         // Hardcore is basically the same thing as it's non-hardcore bit field
         // Gender of the class isn't binary coded it is interpreted
+        public Bit[]? progressionFlags = new Bit[PlayerInformationOffsets.OFFSET_PROGRESSION.BitLength];
 
         // Non Expansion
-            // Normal       00100000
-        public bool Sir_Male = false;
-        public bool Dame_Female = false;
-            // Nightmare    00010000
-        public bool Lord_Male = false;
-        public bool Lady_Female = false;
-            // Hell         00110000
-        public bool Baron_Male = false;
-        public bool Baroness_Female = false;
+        // Normal       00100000
+        public bool Sir_Male
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & !((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = !value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Dame_Female
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & !((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = !value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Nightmare    00010000
+        public bool Lord_Male
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & !((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = !value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Lady_Female
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & !((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = !value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Hell         00110000
+        public bool Baron_Male
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Baroness_Female
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
         // Non Expansion Hardcore
-            // Normal       00100000
-        public bool Count_Male = false;
-        public bool Countess_Female = false;
-            // Nightmare    00010000
-        public bool Duke_Male = false;
-        public bool Duchess_Female = false;
-            // Hell         00110000
-        public bool King_Male = false;
-        public bool Queen_Female = false;
+        // Normal       00100000
+        public bool Count_Male
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & !((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = !value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Countess_Female
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & !((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = !value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Nightmare    00010000
+        public bool Duke_Male
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & !((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = !value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Duchess_Female
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & !((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = !value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Hell         00110000
+        public bool King_Male
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Queen_Female
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
 
         // Expansion
-            // Normal       10100000
-        public bool Slayer = false;
-            // Nightmare    01010000
-        public bool Champion = false;
-            // Hell         11110000
-        public bool Patriarch_Male = false;
-        public bool Matriarch_Female = false;
-        // Expansion Hardcore
-            // Normal       10100000
-        public bool Destroyer = false;
-            // Nightmare    01010000
-        public bool Conqueror = false;
-            // Hell         11110000
-        public bool Guardian = false;
-
-        public ProgressionClass(Bit[] flags, PlayerClass _class, bool isExpansion, bool isHardcore)
+        // Normal       10100000
+        public bool Slayer
         {
-            if(!isExpansion)
+            get
             {
-                if (!isHardcore)
+                return ((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & !((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = !value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Nightmare    01010000
+        public bool Champion
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & ((bool)progressionFlags![1])
+                     & !((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = value;
+                progressionFlags![2] = !value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Hell         11110000
+        public bool Patriarch_Male
+        {
+            get
+            {
+                return ((bool)progressionFlags![0])
+                     & ((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = value;
+                progressionFlags![1] = value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        public bool Matriarch_Female
+        {
+            get
+            {
+                return ((bool)progressionFlags![0])
+                     & ((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = value;
+                progressionFlags![1] = value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Expansion Hardcore
+        // Normal       10100000
+        public bool Destroyer
+        {
+            get
+            {
+                return ((bool)progressionFlags![0])
+                     & !((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & !((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = value;
+                progressionFlags![1] = !value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = !value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Nightmare    01010000
+        public bool Conqueror
+        {
+            get
+            {
+                return !((bool)progressionFlags![0])
+                     & ((bool)progressionFlags![1])
+                     & !((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = !value;
+                progressionFlags![1] = value;
+                progressionFlags![2] = !value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+        // Hell         11110000
+        public bool Guardian
+        {
+            get
+            {
+                return ((bool)progressionFlags![0])
+                     & ((bool)progressionFlags![1])
+                     & ((bool)progressionFlags![2])
+                     & ((bool)progressionFlags![3])
+                     & !((bool)progressionFlags![4])
+                     & !((bool)progressionFlags![5])
+                     & !((bool)progressionFlags![6])
+                     & !((bool)progressionFlags![7]);
+            }
+            set
+            {
+                progressionFlags![0] = value;
+                progressionFlags![1] = value;
+                progressionFlags![2] = value;
+                progressionFlags![3] = value;
+                progressionFlags![4] = !value;
+                progressionFlags![5] = !value;
+                progressionFlags![6] = !value;
+                progressionFlags![7] = !value;
+            }
+        }
+
+        public void ClearProgression()
+        {
+            progressionFlags![0] = false;
+            progressionFlags![1] = false;
+            progressionFlags![2] = false;
+            progressionFlags![3] = false;
+            progressionFlags![4] = false;
+            progressionFlags![5] = false;
+            progressionFlags![6] = false;
+            progressionFlags![7] = false;
+        }
+        /*
+            _class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN
+            _class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN || _class == PlayerClass.DRUID
+         */
+
+        public string GetProgressionString(PlayerClass _class, bool isExpansion, bool isHardcore)
+        {
+            if (isExpansion)
+            {
+                if (isHardcore)
                 {
-                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
-                    {
-                        Sir_Male = ((bool)flags[2]) & !((bool)flags[3]);
-                        Lord_Male = !((bool)flags[2]) & ((bool)flags[3]);
-                        Baron_Male = ((bool)flags[2]) & ((bool)flags[3]);
-                    }
-                    else
-                    {
-                        Dame_Female = ((bool)flags[2]) & !((bool)flags[3]);
-                        Lady_Female = !((bool)flags[2]) & ((bool)flags[3]);
-                        Baroness_Female = ((bool)flags[2]) & ((bool)flags[3]);
-                    }
-                } else {
-                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
-                    {
-                        Count_Male = ((bool)flags[2]) & !((bool)flags[3]);
-                        Duke_Male = !((bool)flags[2]) & ((bool)flags[3]);
-                        King_Male = ((bool)flags[2]) & ((bool)flags[3]);
-                    }
-                    else
-                    {
-                        Countess_Female = ((bool)flags[2]) & !((bool)flags[3]);
-                        Duchess_Female = !((bool)flags[2]) & ((bool)flags[3]);
-                        Queen_Female = ((bool)flags[2]) & ((bool)flags[3]);
-                    }
+                    if (Destroyer) return "Destroyer";
+                    if (Conqueror) return "Conqueror";
+                    if (Guardian) return "Guardian";
                 }
-            } else
-            {
-                if (!isHardcore)
+                else
                 {
-                    Slayer = ((bool)flags[0]) & !((bool)flags[1]) & ((bool)flags[2]) & !((bool)flags[3]);
-                    Champion = !((bool)flags[0]) & ((bool)flags[1]) & !((bool)flags[2]) & ((bool)flags[3]);
-                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN
-                        || _class == PlayerClass.PALADIN || _class == PlayerClass.DRUID)
-                    {
-                        Patriarch_Male = ((bool)flags[0]) & ((bool)flags[1]) & ((bool)flags[2]) & ((bool)flags[3]);
-                    }
+                    if (Slayer) return "Slayer";
+                    if (Champion) return "Champion";
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN || _class == PlayerClass.DRUID)
+                        if(Patriarch_Male) return "Patriarch";
                     else
+                        if(Matriarch_Female) return "Matriarch";
+                }
+            }
+            else
+            {
+                if (isHardcore)
+                {
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                        if(Count_Male) return "Count";
+                    else
+                        if(Countess_Female) return "Countess";
+
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                        if(Duke_Male) return "Duke";
+                    else
+                        if(Duchess_Female) return "Duchess";
+
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                        if(King_Male) return "King";
+                    else
+                        if(Queen_Female) return "Queen";
+                }
+                else
+                {
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                        if(Sir_Male) return "Sir";
+                    else
+                        if(Dame_Female) return "Dame";
+                            
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                        if(Lord_Male) return "Lord";
+                    else
+                        if(Lady_Female) return "Lady";
+
+                    if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                        if(Baron_Male) return "Baron";
+                    else
+                        if(Baroness_Female) return "Baroness";
+                }
+            }
+            return "N/A";
+        }
+
+        public void SetProgression(PlayerClass _class, bool isExpansion, bool isHardcore, int difficulty = 0)
+        {
+            ClearProgression();
+            if (isExpansion)
+            {
+                if (isHardcore)
+                {
+                    switch (difficulty)
                     {
-                        Matriarch_Female = ((bool)flags[0]) & ((bool)flags[1]) & ((bool)flags[2]) & ((bool)flags[3]);
+                        case 1:
+                            Destroyer = true;
+                            break;
+                        case 2:
+                            Conqueror = true;
+                            break;
+                        case 3:
+                            Guardian = true;
+                            break;
                     }
                 }
                 else
                 {
-                    Destroyer = ((bool)flags[0]) & !((bool)flags[1]) & ((bool)flags[2]) & !((bool)flags[3]);
-                    Conqueror = !((bool)flags[0]) & ((bool)flags[1]) & !((bool)flags[2]) & ((bool)flags[3]);
-                    Guardian = ((bool)flags[0]) & ((bool)flags[1]) & ((bool)flags[2]) & ((bool)flags[3]);
+                    switch (difficulty)
+                    {
+                        case 1:
+                            Slayer = true;
+                            break;
+                        case 2:
+                            Champion = true;
+                            break;
+                        case 3:
+                            if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN || _class == PlayerClass.DRUID)
+                            {
+                                Patriarch_Male = true;
+                            } else
+                            {
+                                Matriarch_Female = true;
+                            }
+                            break;
+                    }
                 }
             }
+            else
+            {
+                if (isHardcore)
+                {
+                    switch (difficulty)
+                    {
+                        case 1:
+                            if(_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                            {
+                                Count_Male = true;
+                            } else
+                            {
+                                Countess_Female = true;
+                            }
+                            break;
+                        case 2:
+                            if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                            {
+                                Duke_Male = true;
+                            }
+                            else
+                            {
+                                Duchess_Female = true;
+                            }
+                            break;
+                        case 3:
+                            if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                            {
+                                King_Male = true;
+                            }
+                            else
+                            {
+                                Queen_Female = true;
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (difficulty)
+                    {
+                        case 1:
+                            if(_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                            {
+                                Sir_Male = true;
+                            } else
+                            {
+                                Dame_Female = true;
+                            }
+                            break;
+                        case 2:
+                            if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                            {
+                                Lord_Male = true;
+                            }
+                            else
+                            {
+                                Lady_Female = true;
+                            }
+                            break;
+                        case 3:
+                            if (_class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN)
+                            {
+                                Baron_Male = true;
+                            }
+                            else
+                            {
+                                Baroness_Female = true;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        public ProgressionClass(Bit[] flags)
+        {
+            progressionFlags = flags;
         }
     }
 
@@ -597,8 +1192,6 @@ namespace D2SLib2.Structure.Player
         {
             if (writer.GetBytes().Length != PlayerInformationOffsets.OFFSET_DIFFICULTY.Offset + difficultyLevel)
                 return false;
-
-
 
             writer.WriteBits(flags!);
             return true;
