@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Formats.Asn1;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -194,19 +195,22 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
         public int? CurrentCharges {  get; set; } = null;
         public int? Param { get; set; } = null;
         public uint Value { get; set; } = 0;
+        [JsonIgnore]
+        public ItemStatCost itemStatCost { get; set; } = new ItemStatCost();
 
-        public static MagicalAttribute Read(BitwiseBinaryReader mainReader, ItemStatCost property)
+        public static MagicalAttribute Read(BitwiseBinaryReader mainReader, ItemStatCost _itemStatCost)
         {
             MagicalAttribute attrib = new MagicalAttribute();
 
-            attrib.Id = (ushort)property.Id;
-            attrib.Attribute = property.Stat!;
+            attrib.itemStatCost = _itemStatCost;
+            attrib.Id = (ushort)_itemStatCost.Id;
+            attrib.Attribute = _itemStatCost.Stat!;
 
-            if(property.SaveParamBits != null)
+            if(_itemStatCost.SaveParamBits != null)
             {
-                UInt16 param = mainReader.ReadItemBits<UInt16>(new ItemOffsetStruct(-1, (int)property.SaveParamBits!));
-                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveParamBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Param: {param}");
-                switch (property.Descfunc)
+                UInt16 param = mainReader.ReadItemBits<UInt16>(new ItemOffsetStruct(-1, (int)_itemStatCost.SaveParamBits!));
+                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)_itemStatCost.SaveParamBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Param: {param}");
+                switch (_itemStatCost.Descfunc)
                 {
                     case 14: // +skill to skilltab
                         attrib.SkillTab = param & 0x7;
@@ -215,9 +219,9 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                 }
 
                 // Encode
-                if (property.Encode != null)
+                if (_itemStatCost.Encode != null)
                 {
-                    switch (property.Encode)
+                    switch (_itemStatCost.Encode)
                     {
                         case 1:
                         case 2: // Chance to cast
@@ -232,19 +236,19 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
 
                 attrib.Param = param;
             }
-            if(property.SaveBits != null)
+            if(_itemStatCost.SaveBits != null)
             {
                 uint value = 0;
-                value = mainReader.ReadItemBits<uint>(new ItemOffsetStruct(-1, (int)property.SaveBits!));
-                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value: {value}");
-                if(property.SaveAdd != null && property.SaveAdd != 0)
+                value = mainReader.ReadItemBits<uint>(new ItemOffsetStruct(-1, (int)_itemStatCost.SaveBits!));
+                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)_itemStatCost.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value: {value}");
+                if(_itemStatCost.SaveAdd != null && _itemStatCost.SaveAdd != 0)
                 {
-                    value -= (uint)property.SaveAdd;
+                    value -= (uint)_itemStatCost.SaveAdd;
                 }
 
-                if (property.Encode != null)
+                if (_itemStatCost.Encode != null)
                 {
-                    switch (property.Encode)
+                    switch (_itemStatCost.Encode)
                     {
                         case 2:
                         case 3:
@@ -254,26 +258,26 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                     }
                 }
                 attrib.Value = value;
-                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)property.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value-sA-encode: {value}");
+                Logger.WriteSection(mainReader, new ItemOffsetStruct(-1, (int)_itemStatCost.SaveBits!).BitLength, $"[{attrib.Id}]{attrib.Attribute} Value-sA-encode: {value}");
             }
 
             return attrib;
         }
 
-        public bool Write(BitwiseBinaryWriter writer, ItemStatCost? property)
+        public bool Write(BitwiseBinaryWriter writer, ItemStatCost? _itemStatCost)
         {
-            if (property!.SaveParamBits != null)
+            if (_itemStatCost!.SaveParamBits != null)
             {
                 if (Param != null)
                 {
-                    writer.WriteBits(((int)Param).ToBits((uint)(property.SaveParamBits ?? 0)));
+                    writer.WriteBits(((int)Param).ToBits((uint)(_itemStatCost.SaveParamBits ?? 0)));
                 }
                 else
                 {
                     int ParamBits = 0;
-                    if (property.Encode != null)
+                    if (_itemStatCost.Encode != null)
                     {
-                        switch (property.Descfunc)
+                        switch (_itemStatCost.Descfunc)
                         {
                             case 14: // +skill to skilltab
                                 ParamBits |= (SkillTab ?? 0) & 0x7;
@@ -281,7 +285,7 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                                 break;
                         }
 
-                        switch (property.Encode)
+                        switch (_itemStatCost.Encode)
                         {
                             case 1:
                             case 2: // Chance to cast
@@ -293,17 +297,17 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                                 break;
                         }
                         if (Param != null) ParamBits = (int)Param;
-                        writer.WriteBits(ParamBits.ToBits((uint)(property.SaveParamBits ?? 0)));
+                        writer.WriteBits(ParamBits.ToBits((uint)(_itemStatCost.SaveParamBits ?? 0)));
                     }
                 }
             }
-            if (property.SaveBits != null)
+            if (_itemStatCost.SaveBits != null)
             {
-                uint ParamValue = (UInt32)Value + (UInt32)(property.SaveAdd ?? 0);
+                uint ParamValue = (UInt32)Value + (UInt32)(_itemStatCost.SaveAdd ?? 0);
 
-                if (property.Encode != null)
+                if (_itemStatCost.Encode != null)
                 {
-                    switch (property.Encode)
+                    switch (_itemStatCost.Encode)
                     {
                         case 2:
                         case 3:
@@ -311,7 +315,7 @@ namespace D2SLib2.Structure.Player.Item.MagicalAffixes
                             break;
                     }
                 }
-                writer.WriteBits(((uint)ParamValue).ToBits((uint)(property.SaveBits ?? 0)));
+                writer.WriteBits(((uint)ParamValue).ToBits((uint)(_itemStatCost.SaveBits ?? 0)));
             }
             return true;
         }

@@ -30,7 +30,7 @@ namespace D2SLib2.Structure.Player.Item
             for(int i=0;i<inventory.ItemCount;i++)
             {
                 Logger.WriteBeginSection($"[Begin reading item #{i}]");
-                inventory.ItemList.Add(new ItemStructure(mainReader));
+                inventory.ItemList.Add(new ItemStructure(mainReader, i));
                 Logger.WriteEndSection($"[End reading item #{i}]");
             }
             return inventory;

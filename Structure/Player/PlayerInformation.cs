@@ -49,6 +49,8 @@ namespace D2SLib2.Structure.Player
         public bool HasIronGolem = false;
         public ItemStructure? IronGolemItem { get; set; } = null;
 
+        public int BlockFactor => (int)(D2S.instance!.dbContext!.Charstats.SingleOrDefault(x => x.Class.ToLower() == playerClass.ToString().ToLower())?.BlockFactor ?? 0);
+
         public PlayerInformation() { }
 
         public static PlayerInformation Read(BitwiseBinaryReader mainReader)
@@ -119,27 +121,6 @@ namespace D2SLib2.Structure.Player
 
             playerInfo.skillsClass = SkillsClass.Read(mainReader, playerInfo.playerClass);
 
-            Logger.WriteBeginSection("[Begin Inventory Reading]");
-            mainReader.SetBitPosition(Inventory.InventoryOffset);
-            playerInfo.inventory = Inventory.Read(mainReader);
-            Inventory.EndInventoryOffset = mainReader.bitPosition;
-            Logger.WriteEndSection("[End Inventory Reading]");
-
-            Logger.WriteBeginSection("[Begin Corpse Inventory Reading]");
-            playerInfo.ReadCorpseInformation(mainReader);
-            Logger.WriteEndSection("[End Corpse Inventory Reading]");
-
-            if (playerInfo.statusClass.Expansion)
-            {
-                Logger.WriteBeginSection("[Begin Mercenary Inventory Reading]");
-                playerInfo.ReadMercenaryInventory(mainReader);
-                Logger.WriteEndSection("[End Mercenary Inventory Reading]");
-
-                Logger.WriteBeginSection("[Begin Iron Golem Inventory Reading]");
-                playerInfo.ReadIronGolemInventory(mainReader);
-                Logger.WriteEndSection("[End Iron Golem Inventory Reading]");
-            }
-
             return playerInfo;
         }
 
@@ -154,7 +135,7 @@ namespace D2SLib2.Structure.Player
 
             if ((HasIronGolem = Convert.ToBoolean(mainReader.ReadSkipPositioning<byte>(PlayerInformationOffsets.OFFSET_IRON_GOLEM_BOOL))))
             {
-                IronGolemItem = new ItemStructure(mainReader);
+                IronGolemItem = new ItemStructure(mainReader, 1);
             }
         }
 
@@ -422,7 +403,7 @@ namespace D2SLib2.Structure.Player
             {
                 return !((bool)progressionFlags![0])
                      & !((bool)progressionFlags![1])
-                     & ((bool)progressionFlags![2])
+                     &  ((bool)progressionFlags![2])
                      & !((bool)progressionFlags![3])
                      & !((bool)progressionFlags![4])
                      & !((bool)progressionFlags![5])
@@ -923,6 +904,14 @@ namespace D2SLib2.Structure.Player
             _class == PlayerClass.NECROMANCER || _class == PlayerClass.BARBARIAN || _class == PlayerClass.PALADIN || _class == PlayerClass.DRUID
          */
 
+        public int GetCompletedDifficulty()
+        {
+            if (Destroyer || Slayer || Count_Male || Countess_Female || Sir_Male || Dame_Female) return 1;
+            if (Conqueror || Champion || Duke_Male || Duchess_Female || Lord_Male || Lady_Female) return 2;
+            if (Patriarch_Male || Matriarch_Female || King_Male || Queen_Female || Baron_Male || Baroness_Female) return 3;
+            return 0;
+        }
+
         public string GetProgressionString(PlayerClass _class, bool isExpansion, bool isHardcore)
         {
             if (isExpansion)
@@ -1109,12 +1098,127 @@ namespace D2SLib2.Structure.Player
     public class DifficultyClass
     {
         public Bit[]? flags { get; set; } = new Bit[8];
-        public bool Active { get; set; } = false;
-        public bool Act1 { get; set; } = false;
-        public bool Act2 { get; set; } = false;
-        public bool Act3 { get; set; } = false;
-        public bool Act4 { get; set; } = false;
-        public bool Act5 { get; set; } = false;
+        public bool Active
+        {
+            get
+            {
+                return (bool)flags![7];
+            }
+            set
+            {
+                flags = new Bit[8];
+                flags![7] = value;
+            }
+        }
+        public bool Act1
+        {
+            get
+            {
+                return (bool)flags![0] & !(bool)flags![1] & !(bool)flags![2];
+            }
+            set
+            {
+                if (value == true)
+                {
+                    flags![0] = true;
+                    flags![1] = false;
+                    flags![2] = false;
+                } else
+                {
+                    flags![0] = false;
+                    flags![1] = false;
+                    flags![2] = false;
+                }
+            }
+        }
+        public bool Act2
+        {
+            get
+            {
+                return (bool)flags![0] & (bool)flags![1] & !(bool)flags![2];
+            }
+            set
+            {
+                if (value == true)
+                {
+                    flags![0] = true;
+                    flags![1] = true;
+                    flags![2] = false;
+                }
+                else
+                {
+                    flags![0] = false;
+                    flags![1] = false;
+                    flags![2] = false;
+                }
+            }
+        }
+        public bool Act3
+        {
+            get
+            {
+                return !(bool)flags![0] & (bool)flags![1] & !(bool)flags![2];
+            }
+            set
+            {
+                if (value == true)
+                {
+                    flags![0] = false;
+                    flags![1] = true;
+                    flags![2] = false;
+                }
+                else
+                {
+                    flags![0] = false;
+                    flags![1] = false;
+                    flags![2] = false;
+                }
+            }
+        }
+        public bool Act4
+        {
+            get
+            {
+                return (bool)flags![0] & (bool)flags![1] & (bool)flags![2];
+            }
+            set
+            {
+                if (value == true)
+                {
+                    flags![0] = true;
+                    flags![1] = true;
+                    flags![2] = true;
+                }
+                else
+                {
+                    flags![0] = false;
+                    flags![1] = false;
+                    flags![2] = false;
+                }
+            }
+        }
+        public bool Act5
+        {
+            get
+            {
+                return !(bool)flags![0] & !(bool)flags![1] & (bool)flags![2];
+            }
+            set
+            {
+                if (value == true)
+                {
+                    flags![0] = false;
+                    flags![1] = false;
+                    flags![2] = true;
+                }
+                else
+                {
+                    flags![0] = false;
+                    flags![1] = false;
+                    flags![2] = false;
+                }
+            }
+        }
 
         public DifficultyClass()
         {
@@ -1128,13 +1232,6 @@ namespace D2SLib2.Structure.Player
             if(d.flags == null)
                 throw new NullReferenceException(nameof(d));
 
-            d.Active = (bool)d.flags[7];
-            d.Act1 =  (bool)d.flags[0] & !(bool)d.flags[1] & !(bool)d.flags[2];
-            d.Act2 =  (bool)d.flags[0] &  (bool)d.flags[1] & !(bool)d.flags[2];
-            d.Act3 = !(bool)d.flags[0] &  (bool)d.flags[1] & !(bool)d.flags[2];
-            d.Act4 =  (bool)d.flags[0] &  (bool)d.flags[1] &  (bool)d.flags[2];
-            d.Act5 = !(bool)d.flags[0] & !(bool)d.flags[1] &  (bool)d.flags[2];
-
             return d;
         }
 
@@ -1144,48 +1241,24 @@ namespace D2SLib2.Structure.Player
             if (act > 5) return;
             if (flags == null) return;
 
-            for (int i = 0; i < flags.Length; i++) flags[i] = new Bit(0);
-
             switch(act)
             {
                 case 1:
-                    flags[7] = new Bit(1);
-                    flags[0] = new Bit(1);
-                    flags[1] = new Bit(0);
-                    flags[2] = new Bit(0);
+                    Act1 = true;
                     break;
                 case 2:
-                    flags[7] = new Bit(1);
-                    flags[0] = new Bit(1);
-                    flags[1] = new Bit(1);
-                    flags[2] = new Bit(0);
+                    Act2 = true;
                     break;
                 case 3:
-                    flags[7] = new Bit(1);
-                    flags[0] = new Bit(0);
-                    flags[1] = new Bit(1);
-                    flags[2] = new Bit(0);
+                    Act3 = true;
                     break;
                 case 4:
-                    flags[7] = new Bit(1);
-                    flags[0] = new Bit(1);
-                    flags[1] = new Bit(1);
-                    flags[2] = new Bit(1);
+                    Act4 = true;
                     break;
                 case 5:
-                    flags[7] = new Bit(1);
-                    flags[0] = new Bit(0);
-                    flags[1] = new Bit(0);
-                    flags[2] = new Bit(1);
+                    Act5 = true;
                     break;
             }
-
-            Active =    (bool)flags[7];
-            Act1 =      (bool)flags[0] & !(bool)flags[1] & !(bool)flags[2];
-            Act2 =      (bool)flags[0] &  (bool)flags[1] & !(bool)flags[2];
-            Act3 =     !(bool)flags[0] &  (bool)flags[1] & !(bool)flags[2];
-            Act4 =      (bool)flags[0] &  (bool)flags[1] &  (bool)flags[2];
-            Act5 =     !(bool)flags[0] & !(bool)flags[1] &  (bool)flags[2];
         }
 
         public bool Write(BitwiseBinaryWriter writer, int difficultyLevel)

@@ -15,27 +15,174 @@ public partial class D2slibDataContext : DbContext
     {
     }
 
+    public virtual DbSet<Charstat> Charstats { get; set; }
+
     public virtual DbSet<ItemStatCost> ItemStatCosts { get; set; }
 
     public virtual DbSet<ItemType> ItemTypes { get; set; }
 
     public virtual DbSet<ItemsTemplate> ItemsTemplates { get; set; }
 
+    public virtual DbSet<Magicprefix> Magicprefixes { get; set; }
+
+    public virtual DbSet<Magicsuffix> Magicsuffixes { get; set; }
+
     public virtual DbSet<Playerclass> Playerclasses { get; set; }
 
     public virtual DbSet<Property> Properties { get; set; }
 
+    public virtual DbSet<Rarecraftaffix> Rarecraftaffixes { get; set; }
+
     public virtual DbSet<Rune> Runes { get; set; }
+
+    public virtual DbSet<Setitem> Setitems { get; set; }
 
     public virtual DbSet<Skill> Skills { get; set; }
 
     public virtual DbSet<UniqueItem> UniqueItems { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlite("DataSource=C:\\\\Users\\\\ShadowEvil\\\\source\\\\repos\\\\D2SLib2\\\\D2STesting\\\\D2SLibData.db");
+        => optionsBuilder.UseSqlite("DataSource=C:\\Users\\ShadowEvil\\source\\repos\\D2SLib2\\Database\\D2SLibData.db");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Charstat>(entity =>
+        {
+            entity.HasKey(e => e.Class);
+
+            entity.ToTable("charstats");
+
+            entity.Property(e => e.Class)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("class");
+            entity.Property(e => e.BaseWclass)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("baseWClass");
+            entity.Property(e => e.Comment).HasColumnType("TEXT(255)");
+            entity.Property(e => e.Dex).HasColumnName("dex");
+            entity.Property(e => e.Hpadd).HasColumnName("hpadd");
+            entity.Property(e => e.Int).HasColumnName("int");
+            entity.Property(e => e.Item1)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item1");
+            entity.Property(e => e.Item10)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item10");
+            entity.Property(e => e.Item10count).HasColumnName("item10count");
+            entity.Property(e => e.Item10loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item10loc");
+            entity.Property(e => e.Item10quality).HasColumnName("item10quality");
+            entity.Property(e => e.Item1count).HasColumnName("item1count");
+            entity.Property(e => e.Item1loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item1loc");
+            entity.Property(e => e.Item1quality).HasColumnName("item1quality");
+            entity.Property(e => e.Item2)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item2");
+            entity.Property(e => e.Item2count).HasColumnName("item2count");
+            entity.Property(e => e.Item2loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item2loc");
+            entity.Property(e => e.Item2quality).HasColumnName("item2quality");
+            entity.Property(e => e.Item3)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item3");
+            entity.Property(e => e.Item3count).HasColumnName("item3count");
+            entity.Property(e => e.Item3loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item3loc");
+            entity.Property(e => e.Item3quality).HasColumnName("item3quality");
+            entity.Property(e => e.Item4)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item4");
+            entity.Property(e => e.Item4count).HasColumnName("item4count");
+            entity.Property(e => e.Item4loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item4loc");
+            entity.Property(e => e.Item4quality).HasColumnName("item4quality");
+            entity.Property(e => e.Item5)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item5");
+            entity.Property(e => e.Item5count).HasColumnName("item5count");
+            entity.Property(e => e.Item5loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item5loc");
+            entity.Property(e => e.Item5quality).HasColumnName("item5quality");
+            entity.Property(e => e.Item6)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item6");
+            entity.Property(e => e.Item6count).HasColumnName("item6count");
+            entity.Property(e => e.Item6loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item6loc");
+            entity.Property(e => e.Item6quality).HasColumnName("item6quality");
+            entity.Property(e => e.Item7)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item7");
+            entity.Property(e => e.Item7count).HasColumnName("item7count");
+            entity.Property(e => e.Item7loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item7loc");
+            entity.Property(e => e.Item7quality).HasColumnName("item7quality");
+            entity.Property(e => e.Item8)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item8");
+            entity.Property(e => e.Item8count).HasColumnName("item8count");
+            entity.Property(e => e.Item8loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item8loc");
+            entity.Property(e => e.Item8quality).HasColumnName("item8quality");
+            entity.Property(e => e.Item9)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item9");
+            entity.Property(e => e.Item9count).HasColumnName("item9count");
+            entity.Property(e => e.Item9loc)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("item9loc");
+            entity.Property(e => e.Item9quality).HasColumnName("item9quality");
+            entity.Property(e => e.Skill1)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 1");
+            entity.Property(e => e.Skill10)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 10");
+            entity.Property(e => e.Skill2)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 2");
+            entity.Property(e => e.Skill3)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 3");
+            entity.Property(e => e.Skill4)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 4");
+            entity.Property(e => e.Skill5)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 5");
+            entity.Property(e => e.Skill6)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 6");
+            entity.Property(e => e.Skill7)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 7");
+            entity.Property(e => e.Skill8)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 8");
+            entity.Property(e => e.Skill9)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("Skill 9");
+            entity.Property(e => e.Stamina).HasColumnName("stamina");
+            entity.Property(e => e.StartSkill).HasColumnType("TEXT(255)");
+            entity.Property(e => e.Str).HasColumnName("str");
+            entity.Property(e => e.StrAllSkills).HasColumnType("TEXT(255)");
+            entity.Property(e => e.StrClassOnly).HasColumnType("TEXT(255)");
+            entity.Property(e => e.StrSkillTab1).HasColumnType("TEXT(255)");
+            entity.Property(e => e.StrSkillTab2).HasColumnType("TEXT(255)");
+            entity.Property(e => e.StrSkillTab3).HasColumnType("TEXT(255)");
+            entity.Property(e => e.Vit).HasColumnName("vit");
+        });
+
         modelBuilder.Entity<ItemStatCost>(entity =>
         {
             entity.ToTable("ItemStatCost");
@@ -91,9 +238,16 @@ public partial class D2slibDataContext : DbContext
 
         modelBuilder.Entity<ItemsTemplate>(entity =>
         {
+            entity.HasKey(e => new { e.Id, e.Code });
+
             entity.ToTable("ItemsTemplate");
 
+            entity.HasIndex(e => e.Code, "IX_ItemsTemplate_code").IsUnique();
+
+            entity.HasIndex(e => e.Code, "Code").IsUnique();
+
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Absorbs).HasColumnName("absorbs");
             entity.Property(e => e.Advdisplay).HasColumnName("advdisplay");
             entity.Property(e => e.Alternategfx).HasColumnName("alternategfx");
@@ -105,7 +259,6 @@ public partial class D2slibDataContext : DbContext
             entity.Property(e => e.Calc1).HasColumnName("calc1");
             entity.Property(e => e.Calc2).HasColumnName("calc2");
             entity.Property(e => e.Calc3).HasColumnName("calc3");
-            entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Compactsave).HasColumnName("compactsave");
             entity.Property(e => e.Component).HasColumnName("component");
             entity.Property(e => e.Cost).HasColumnName("cost");
@@ -127,6 +280,7 @@ public partial class D2slibDataContext : DbContext
             entity.Property(e => e.Dgrpstrneg).HasColumnName("dgrpstrneg");
             entity.Property(e => e.Dgrpstrpos).HasColumnName("dgrpstrpos");
             entity.Property(e => e.Dgrpval).HasColumnName("dgrpval");
+            entity.Property(e => e.Diablocloneweight).HasColumnName("diablocloneweight");
             entity.Property(e => e.Direct).HasColumnName("direct");
             entity.Property(e => e.Dropsfxframe).HasColumnName("dropsfxframe");
             entity.Property(e => e.Dropsound).HasColumnName("dropsound");
@@ -198,7 +352,9 @@ public partial class D2slibDataContext : DbContext
             entity.Property(e => e.Speed).HasColumnName("speed");
             entity.Property(e => e.Spelldesc).HasColumnName("spelldesc");
             entity.Property(e => e.Spelldesccalc).HasColumnName("spelldesccalc");
+            entity.Property(e => e.Spelldesccolor).HasColumnName("spelldesccolor");
             entity.Property(e => e.Spelldescstr).HasColumnName("spelldescstr");
+            entity.Property(e => e.Spelldescstr2).HasColumnName("spelldescstr2");
             entity.Property(e => e.Spellicon).HasColumnName("spellicon");
             entity.Property(e => e.Spelloffset).HasColumnName("spelloffset");
             entity.Property(e => e.Stackable).HasColumnName("stackable");
@@ -232,6 +388,94 @@ public partial class D2slibDataContext : DbContext
             entity.Property(e => e._2handedwclass).HasColumnName("2handedwclass");
             entity.Property(e => e._2handmaxdam).HasColumnName("2handmaxdam");
             entity.Property(e => e._2handmindam).HasColumnName("2handmindam");
+        });
+
+        modelBuilder.Entity<Magicprefix>(entity =>
+        {
+            entity.ToTable("magicprefix");
+
+            entity.Property(e => e.Add).HasColumnName("add");
+            entity.Property(e => e.Class).HasColumnName("class");
+            entity.Property(e => e.Classlevelreq).HasColumnName("classlevelreq");
+            entity.Property(e => e.Classspecific).HasColumnName("classspecific");
+            entity.Property(e => e.Etype1).HasColumnName("etype1");
+            entity.Property(e => e.Etype2).HasColumnName("etype2");
+            entity.Property(e => e.Etype3).HasColumnName("etype3");
+            entity.Property(e => e.Etype4).HasColumnName("etype4");
+            entity.Property(e => e.Etype5).HasColumnName("etype5");
+            entity.Property(e => e.Frequency).HasColumnName("frequency");
+            entity.Property(e => e.Group).HasColumnName("group");
+            entity.Property(e => e.Itype1).HasColumnName("itype1");
+            entity.Property(e => e.Itype2).HasColumnName("itype2");
+            entity.Property(e => e.Itype3).HasColumnName("itype3");
+            entity.Property(e => e.Itype4).HasColumnName("itype4");
+            entity.Property(e => e.Itype5).HasColumnName("itype5");
+            entity.Property(e => e.Itype6).HasColumnName("itype6");
+            entity.Property(e => e.Itype7).HasColumnName("itype7");
+            entity.Property(e => e.Level).HasColumnName("level");
+            entity.Property(e => e.Levelreq).HasColumnName("levelreq");
+            entity.Property(e => e.Maxlevel).HasColumnName("maxlevel");
+            entity.Property(e => e.Mod1code).HasColumnName("mod1code");
+            entity.Property(e => e.Mod1max).HasColumnName("mod1max");
+            entity.Property(e => e.Mod1min).HasColumnName("mod1min");
+            entity.Property(e => e.Mod1param).HasColumnName("mod1param");
+            entity.Property(e => e.Mod2code).HasColumnName("mod2code");
+            entity.Property(e => e.Mod2max).HasColumnName("mod2max");
+            entity.Property(e => e.Mod2min).HasColumnName("mod2min");
+            entity.Property(e => e.Mod2param).HasColumnName("mod2param");
+            entity.Property(e => e.Mod3code).HasColumnName("mod3code");
+            entity.Property(e => e.Mod3max).HasColumnName("mod3max");
+            entity.Property(e => e.Mod3min).HasColumnName("mod3min");
+            entity.Property(e => e.Mod3param).HasColumnName("mod3param");
+            entity.Property(e => e.Multiply).HasColumnName("multiply");
+            entity.Property(e => e.Rare).HasColumnName("rare");
+            entity.Property(e => e.Spawnable).HasColumnName("spawnable");
+            entity.Property(e => e.Transformcolor).HasColumnName("transformcolor");
+            entity.Property(e => e.Version).HasColumnName("version");
+        });
+
+        modelBuilder.Entity<Magicsuffix>(entity =>
+        {
+            entity.ToTable("magicsuffix");
+
+            entity.Property(e => e.Add).HasColumnName("add");
+            entity.Property(e => e.Class).HasColumnName("class");
+            entity.Property(e => e.Classlevelreq).HasColumnName("classlevelreq");
+            entity.Property(e => e.Classspecific).HasColumnName("classspecific");
+            entity.Property(e => e.Etype1).HasColumnName("etype1");
+            entity.Property(e => e.Etype2).HasColumnName("etype2");
+            entity.Property(e => e.Etype3).HasColumnName("etype3");
+            entity.Property(e => e.Etype4).HasColumnName("etype4");
+            entity.Property(e => e.Etype5).HasColumnName("etype5");
+            entity.Property(e => e.Frequency).HasColumnName("frequency");
+            entity.Property(e => e.Group).HasColumnName("group");
+            entity.Property(e => e.Itype1).HasColumnName("itype1");
+            entity.Property(e => e.Itype2).HasColumnName("itype2");
+            entity.Property(e => e.Itype3).HasColumnName("itype3");
+            entity.Property(e => e.Itype4).HasColumnName("itype4");
+            entity.Property(e => e.Itype5).HasColumnName("itype5");
+            entity.Property(e => e.Itype6).HasColumnName("itype6");
+            entity.Property(e => e.Itype7).HasColumnName("itype7");
+            entity.Property(e => e.Level).HasColumnName("level");
+            entity.Property(e => e.Levelreq).HasColumnName("levelreq");
+            entity.Property(e => e.Maxlevel).HasColumnName("maxlevel");
+            entity.Property(e => e.Mod1code).HasColumnName("mod1code");
+            entity.Property(e => e.Mod1max).HasColumnName("mod1max");
+            entity.Property(e => e.Mod1min).HasColumnName("mod1min");
+            entity.Property(e => e.Mod1param).HasColumnName("mod1param");
+            entity.Property(e => e.Mod2code).HasColumnName("mod2code");
+            entity.Property(e => e.Mod2max).HasColumnName("mod2max");
+            entity.Property(e => e.Mod2min).HasColumnName("mod2min");
+            entity.Property(e => e.Mod2param).HasColumnName("mod2param");
+            entity.Property(e => e.Mod3code).HasColumnName("mod3code");
+            entity.Property(e => e.Mod3max).HasColumnName("mod3max");
+            entity.Property(e => e.Mod3min).HasColumnName("mod3min");
+            entity.Property(e => e.Mod3param).HasColumnName("mod3param");
+            entity.Property(e => e.Multiply).HasColumnName("multiply");
+            entity.Property(e => e.Rare).HasColumnName("rare");
+            entity.Property(e => e.Spawnable).HasColumnName("spawnable");
+            entity.Property(e => e.Transformcolor).HasColumnName("transformcolor");
+            entity.Property(e => e.Version).HasColumnName("version");
         });
 
         modelBuilder.Entity<Playerclass>(entity =>
@@ -277,6 +521,49 @@ public partial class D2slibDataContext : DbContext
             entity.Property(e => e.Val5).HasColumnName("val5");
             entity.Property(e => e.Val6).HasColumnName("val6");
             entity.Property(e => e.Val7).HasColumnName("val7");
+        });
+
+        modelBuilder.Entity<Rarecraftaffix>(entity =>
+        {
+            entity.ToTable("rarecraftaffixes");
+
+            entity.Property(e => e.Etype1)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("etype1");
+            entity.Property(e => e.Etype2)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("etype2");
+            entity.Property(e => e.Etype3)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("etype3");
+            entity.Property(e => e.Etype4)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("etype4");
+            entity.Property(e => e.Itype1)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype1");
+            entity.Property(e => e.Itype2)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype2");
+            entity.Property(e => e.Itype3)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype3");
+            entity.Property(e => e.Itype4)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype4");
+            entity.Property(e => e.Itype5)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype5");
+            entity.Property(e => e.Itype6)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype6");
+            entity.Property(e => e.Itype7)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("itype7");
+            entity.Property(e => e.Name)
+                .HasColumnType("TEXT(255)")
+                .HasColumnName("name");
+            entity.Property(e => e.Version).HasColumnName("version");
         });
 
         modelBuilder.Entity<Rune>(entity =>
@@ -326,6 +613,109 @@ public partial class D2slibDataContext : DbContext
             entity.Property(e => e.T1param5).HasColumnName("T1Param5");
             entity.Property(e => e.T1param6).HasColumnName("T1Param6");
             entity.Property(e => e.T1param7).HasColumnName("T1Param7");
+        });
+
+        modelBuilder.Entity<Setitem>(entity =>
+        {
+            entity.ToTable("setitems");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.Addfunc).HasColumnName("addfunc");
+            entity.Property(e => e.Amax1a).HasColumnName("amax1a");
+            entity.Property(e => e.Amax1b).HasColumnName("amax1b");
+            entity.Property(e => e.Amax2a).HasColumnName("amax2a");
+            entity.Property(e => e.Amax2b).HasColumnName("amax2b");
+            entity.Property(e => e.Amax3a).HasColumnName("amax3a");
+            entity.Property(e => e.Amax3b).HasColumnName("amax3b");
+            entity.Property(e => e.Amax4a).HasColumnName("amax4a");
+            entity.Property(e => e.Amax4b).HasColumnName("amax4b");
+            entity.Property(e => e.Amax5a).HasColumnName("amax5a");
+            entity.Property(e => e.Amax5b).HasColumnName("amax5b");
+            entity.Property(e => e.Amin1a).HasColumnName("amin1a");
+            entity.Property(e => e.Amin1b).HasColumnName("amin1b");
+            entity.Property(e => e.Amin2a).HasColumnName("amin2a");
+            entity.Property(e => e.Amin2b).HasColumnName("amin2b");
+            entity.Property(e => e.Amin3a).HasColumnName("amin3a");
+            entity.Property(e => e.Amin3b).HasColumnName("amin3b");
+            entity.Property(e => e.Amin4a).HasColumnName("amin4a");
+            entity.Property(e => e.Amin4b).HasColumnName("amin4b");
+            entity.Property(e => e.Amin5a).HasColumnName("amin5a");
+            entity.Property(e => e.Amin5b).HasColumnName("amin5b");
+            entity.Property(e => e.Apar1a).HasColumnName("apar1a");
+            entity.Property(e => e.Apar1b).HasColumnName("apar1b");
+            entity.Property(e => e.Apar2a).HasColumnName("apar2a");
+            entity.Property(e => e.Apar2b).HasColumnName("apar2b");
+            entity.Property(e => e.Apar3a).HasColumnName("apar3a");
+            entity.Property(e => e.Apar3b).HasColumnName("apar3b");
+            entity.Property(e => e.Apar4a).HasColumnName("apar4a");
+            entity.Property(e => e.Apar4b).HasColumnName("apar4b");
+            entity.Property(e => e.Apar5a).HasColumnName("apar5a");
+            entity.Property(e => e.Apar5b).HasColumnName("apar5b");
+            entity.Property(e => e.Aprop1a).HasColumnName("aprop1a");
+            entity.Property(e => e.Aprop1b).HasColumnName("aprop1b");
+            entity.Property(e => e.Aprop2a).HasColumnName("aprop2a");
+            entity.Property(e => e.Aprop2b).HasColumnName("aprop2b");
+            entity.Property(e => e.Aprop3a).HasColumnName("aprop3a");
+            entity.Property(e => e.Aprop3b).HasColumnName("aprop3b");
+            entity.Property(e => e.Aprop4a).HasColumnName("aprop4a");
+            entity.Property(e => e.Aprop4b).HasColumnName("aprop4b");
+            entity.Property(e => e.Aprop5a).HasColumnName("aprop5a");
+            entity.Property(e => e.Aprop5b).HasColumnName("aprop5b");
+            entity.Property(e => e.Chrtransform).HasColumnName("chrtransform");
+            entity.Property(e => e.Costadd).HasColumnName("costadd");
+            entity.Property(e => e.Costmult).HasColumnName("costmult");
+            entity.Property(e => e.Diablocloneweight).HasColumnName("diablocloneweight");
+            entity.Property(e => e.Dropsfxframe).HasColumnName("dropsfxframe");
+            entity.Property(e => e.Dropsound).HasColumnName("dropsound");
+            entity.Property(e => e.Eol).HasColumnName("eol");
+            entity.Property(e => e.Flippyfile).HasColumnName("flippyfile");
+            entity.Property(e => e.Index).HasColumnName("index");
+            entity.Property(e => e.Invfile).HasColumnName("invfile");
+            entity.Property(e => e.Invtransform).HasColumnName("invtransform");
+            entity.Property(e => e.Item).HasColumnName("item");
+            entity.Property(e => e.Lvl).HasColumnName("lvl");
+            entity.Property(e => e.Lvlreq).HasColumnName("lvlreq");
+            entity.Property(e => e.Max1).HasColumnName("max1");
+            entity.Property(e => e.Max2).HasColumnName("max2");
+            entity.Property(e => e.Max3).HasColumnName("max3");
+            entity.Property(e => e.Max4).HasColumnName("max4");
+            entity.Property(e => e.Max5).HasColumnName("max5");
+            entity.Property(e => e.Max6).HasColumnName("max6");
+            entity.Property(e => e.Max7).HasColumnName("max7");
+            entity.Property(e => e.Max8).HasColumnName("max8");
+            entity.Property(e => e.Max9).HasColumnName("max9");
+            entity.Property(e => e.Min1).HasColumnName("min1");
+            entity.Property(e => e.Min2).HasColumnName("min2");
+            entity.Property(e => e.Min3).HasColumnName("min3");
+            entity.Property(e => e.Min4).HasColumnName("min4");
+            entity.Property(e => e.Min5).HasColumnName("min5");
+            entity.Property(e => e.Min6).HasColumnName("min6");
+            entity.Property(e => e.Min7).HasColumnName("min7");
+            entity.Property(e => e.Min8).HasColumnName("min8");
+            entity.Property(e => e.Min9).HasColumnName("min9");
+            entity.Property(e => e.Par1).HasColumnName("par1");
+            entity.Property(e => e.Par2).HasColumnName("par2");
+            entity.Property(e => e.Par3).HasColumnName("par3");
+            entity.Property(e => e.Par4).HasColumnName("par4");
+            entity.Property(e => e.Par5).HasColumnName("par5");
+            entity.Property(e => e.Par6).HasColumnName("par6");
+            entity.Property(e => e.Par7).HasColumnName("par7");
+            entity.Property(e => e.Par8).HasColumnName("par8");
+            entity.Property(e => e.Par9).HasColumnName("par9");
+            entity.Property(e => e.Prop1).HasColumnName("prop1");
+            entity.Property(e => e.Prop2).HasColumnName("prop2");
+            entity.Property(e => e.Prop3).HasColumnName("prop3");
+            entity.Property(e => e.Prop4).HasColumnName("prop4");
+            entity.Property(e => e.Prop5).HasColumnName("prop5");
+            entity.Property(e => e.Prop6).HasColumnName("prop6");
+            entity.Property(e => e.Prop7).HasColumnName("prop7");
+            entity.Property(e => e.Prop8).HasColumnName("prop8");
+            entity.Property(e => e.Prop9).HasColumnName("prop9");
+            entity.Property(e => e.Rarity).HasColumnName("rarity");
+            entity.Property(e => e.Set).HasColumnName("set");
+            entity.Property(e => e.Usesound).HasColumnName("usesound");
         });
 
         modelBuilder.Entity<Skill>(entity =>

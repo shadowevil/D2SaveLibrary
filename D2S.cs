@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using System.Formats.Asn1;
 
 // How to scaffold your database you dipshit:
-//              Scaffold-DbContext "DataSource=C:\\Users\\ShadowEvil\\source\\repos\\D2SLib2\\D2STesting\\D2SLibData.db" Microsoft.EntityFrameworkCore.Sqlite -outputdir tmpModel
+//              Scaffold-DbContext "DataSource=C:\Users\ShadowEvil\source\repos\D2SLib2\Database\D2SLibData.db" Microsoft.EntityFrameworkCore.Sqlite -outputdir tmpModel
 
 namespace D2SLib2
 {
@@ -84,6 +84,27 @@ namespace D2SLib2
                 Logger.WriteBeginSection("[Begin Player Information]");
                 playerInformation = PlayerInformation.Read(d2sReader);
                 Logger.WriteEndSection("[End Player Information]");
+
+                Logger.WriteBeginSection("[Begin Inventory Reading]");
+                d2sReader.SetBitPosition(Inventory.InventoryOffset);
+                playerInformation.inventory = Inventory.Read(d2sReader);
+                Inventory.EndInventoryOffset = d2sReader.bitPosition;
+                Logger.WriteEndSection("[End Inventory Reading]");
+
+                Logger.WriteBeginSection("[Begin Corpse Inventory Reading]");
+                playerInformation.ReadCorpseInformation(d2sReader);
+                Logger.WriteEndSection("[End Corpse Inventory Reading]");
+
+                if (playerInformation.statusClass.Expansion)
+                {
+                    Logger.WriteBeginSection("[Begin Mercenary Inventory Reading]");
+                    playerInformation.ReadMercenaryInventory(d2sReader);
+                    Logger.WriteEndSection("[End Mercenary Inventory Reading]");
+
+                    Logger.WriteBeginSection("[Begin Iron Golem Inventory Reading]");
+                    playerInformation.ReadIronGolemInventory(d2sReader);
+                    Logger.WriteEndSection("[End Iron Golem Inventory Reading]");
+                }
 
                 Logger.WriteBeginSection("[Begin D2Menu Appearance]");
                 menuAppearance = new MenuAppearance();
