@@ -51,7 +51,7 @@ Currently I am not providing any back-version support as I am only focused on th
 (Just basic campaign information about the character)
 | Offset bytes | Key                                               | bytes | bits  |
 |--------------|---------------------------------------------------|-------|-------|
-| 126          | Classic Character Menu Appearance                 | 32    | 256   |  |
+| 136          | Classic Character Menu Appearance                 | 32    | 256   |  |
 | 219          | Diablo 2 Resurrected Character Menu Appearance    | 48    | 384   |  |
 | 177          | Mercenary Is Dead                                 | 2     | 16    |  |
 | 179          | Mercenary Seed                                    | 4     | 32    |  |
