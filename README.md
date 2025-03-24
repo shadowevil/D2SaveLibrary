@@ -86,8 +86,8 @@ formula to find a quest :
 | d + 32       | Introduction to Hratli                            | 2     | 16    |  |
 | d + 46       | Traveled To Act 4                                 | 2     | 16    |  |
 | d + 48       | Introduction to Tyeral                            | 2     | 16    |  |
-| d + 60       | Traveled To Act 5                                 | 2     | 16    |  |
-| d + 62       | Introduction to Cain (Act 5)                      | 2     | 16    |  |
+| d + 62       | Traveled To Act 5                                 | 2     | 16    |  |
+| d + 64       | Introduction to Cain (Act 5)                      | 2     | 16    |  |
 | d + 78       | Akara Stat Reset                                  | 1     | 8     |  |
 | d + 79       | Act 5 Completed                                   | 1     | 8     |  |
 |              | START of Act Offsets                              |       |       |  |
